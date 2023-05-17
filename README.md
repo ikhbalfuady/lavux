@@ -3,7 +3,8 @@
 Laravel & Vue Enterprise Library <br>
 </p>
 
- [See Documentation](https://lavux-doc.sopeus.com/)
+Jika anda ingin melihat lebih detail bisa kunjungi [Documentation](https://lavux-doc.sopeus.com/)
+atau Anda pensaran seperti apa lavux, coba lihat secara langsung dengan klik [Demo](https://lavux.sopeus.com/)
 
 
 ## About Lavux
