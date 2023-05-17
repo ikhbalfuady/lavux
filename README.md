@@ -1,66 +1,157 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
+<p align="center"><a href="https://lavux.sopeus.com" target="_blank"><img src="https://lavux.sopeus.com/assets/logo.png" width="400" alt="Lavux Logo"></a></p>
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+Laravel & Vue Enterprise Library <br>
 </p>
 
-## About Laravel
+ [See Documentation](https://lavux-doc.sopeus.com/)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## About Lavux
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Esensial komponen untuk membuat aplikasi enterprise secara efisien, konsisten, mudah & cepat.
 
-## Learning Laravel
+Lavux dikembangkan menggunakan : 
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+> Backend
+- Laravel versi 10 (PHP 8.1)
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+> Frontend
+- Quasar Framework (Vue 3)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-## Laravel Sponsors
+Mengadopsi konsep UI dengan Material Design yang sedikit di modifikasi, dan mengadopsi Konsep Repository Pattern untuk sisi Backend, semua data di olah menggunakan RESTfull API
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+## Lavux Page Components
 
-### Premium Partners
+Dilengkapi dengan standar fitur & komponen yang umum digunakan seperti :
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+- Input : (Text, Number, Currency, Textarea, File)
 
-## Contributing
+- Select : (Combo box, Auto Complete [static / dynamic / ajax ])
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- Switcher : (Toggle , Checkbox)
 
-## Code of Conduct
+- Uploader : (Raw file, Auto upload, Custom upload URL)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- Button : (Default, Soft)
 
-## Security Vulnerabilities
+- Table : (Static, Dynamic, Ajax)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+Selain itu ada juga komponen standar lainnya yang dapat membantu Anda dalam membangun sebuah halaman agar lebih konsisten seperti : 
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**Page Header**
+
+mengatur header halaman lengkap dengan handler "previous page"
+
+
+**Container**
+
+Pembungkus komponen-komponen yang akan di lampirkan dihalaman yang sudah dilengkapi dengan kustom scroll
+
+
+**SideMenu**
+
+Menu navigasi bilah kiri, daftar menu diatur di API (Backend)
+
+
+**TopMenu**
+
+Menu navigasi pada bagian atas, Anda harus memilih salah satu desain menu yg Anda gunakan TopMenu / SideMenu
+
+
+**TopBar**
+
+Bar area di bagian atas yang mengakomodir sub menu khusus untuk halaman aplikasi, agar tidak terlalu banyak tombol action di bagian halaman maka dari itu TopBar kami sediakan, terinspirasi dari konsep menu di aplikasi Desktop
+
+
+**ProfileChip**
+
+Badge profil pengguna yang sudah di sisipkan di TopBar & TopMenu pada bagian kanan atas, memudahkan Anda untuk melihat informasi login Anda, berikut dengan jalan pintas untuk menuju profil Anda, terdapat pula pengaturan umum
+
+
+
+---
+
+## Default Modules
+
+Dengan lavux Anda sudah bisa langsung membuat aplikasi secara instan & konsisten, karena semua kebutuhan Anda secara umum sudah terpenuh.
+
+Anda sudah mendapatkan beberapa modul bawaan ketika Anda menginstall Lavux seperti : 
+
+**Users**
+
+Tersedia CRUD, halaman akun profil yang sudah dilengkapi dengan fitur memperbarui profil, ubah password & ganti foto profil (dengan fitur upload)
+
+
+**Permissions**
+
+Tersedia CRUD, modul untuk menyimpan daftar hak akses modul-modul yang ada
+
+
+**Roles**
+
+Tersedia CRUD, modul untuk menyimpan daftar  peran pengguna yang sudah terdefinisi hak aksesnya
+
+
+**Role Groups**
+
+Tersedia CRUD, modul untuk menyimpan grup peran untuk pengklasifikasian.
+
+
+---
+
+## App Access Controls
+
+Fitur umum yang ada di sisi Front End :
+
+**Action On Modal**
+
+Memungkinkan Anda untuk mengakses halaman tertentu dalam sebuah modal tanpa harus redirect ke halaman tersebut
+
+
+**Side / Top Menu Switcher**
+
+Memungkinkan Anda untuk mengatur tata letak menu yang Anda inginkan, dibagian atas atau samping
+
+
+**Reload Permissions**
+
+Fitur untuk memuat ulang hak akses pengguna ketika ada pembaharuan dari sisi backend
+
+
+**Handler Permission Page**
+
+Halaman aplikasi yang tersedia sudah di lengkapi dengan handler hak akses, jadi kita bisa langsung mengatur tampilan terkait boleh / tidaknya halaman / fitur yang akan di akses (dari sisi backend juga ada handle hak akses)
+
+
+**Table**
+
+Data table yang sudah di desain secara khusus untuk mengakomodir kebutuhan manajemen data di tiap-tiap modul, dilengkapi dengan :
+
+- Pencarian Global (bisa diatur ingin berdasarkan kolom tertentu)
+
+- Pencarian Spesifik 
+(berdasarkan kolom, lengkap dengan multi kondisi)
+
+- Sortir ASC / DESC
+
+- Kustom "slot"
+
+- Virtual Scroll
+
+- Seleksi data
+
+- Pengaturan Tampilan Kolom
+
+
+---
+
+Fitur umum yang tersedia di sisi Backend
+
+*Permission Handler*
+
+Memungkinkan Anda untuk mengatur sumberdaya tertentu akan hak aksesnya, Anda bisa mengaturnya dari Controller, konsep hak akses disini mirip seperti Spatie, namun dibuat lebih ringkas.
+
+
