@@ -1,0 +1,67 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\StandardModel;
+
+/**
+<<propertyInfo>>
+ */
+class <<module>> extends Model
+{
+    use HasApiTokens, HasFactory, Notifiable;
+    use SoftDeletes, StandardModel, <<module>>_H; 
+
+    protected $table = '<<table>>';
+    protected $primaryKey = 'id';
+
+    protected $fillable = [
+        <<fillable>>
+    ];
+
+    public $timestamps = true;
+    protected $guarded = ['id'];
+
+    protected $casts = [
+        <<casts>>
+    ];
+
+    // automatic appends attributes
+    protected $appends = [
+        'log_data' // default log data, from StandardModel
+        // 'your_attr'
+    ];
+
+    /** Search Relations
+    *   for availability searching by relation data, needed in StandardRepo
+    */
+    public function searchRelations() {
+        try {
+            return $this->bindSearchRelation([
+<<searchRelations>>
+            ]);
+        } catch (\Exception $e){
+            throw new \Exception(H_throw($e, H_getModelName(get_class()).'::searchRelations]'));
+        }
+    }
+
+    /* Relations : belongsTo */
+
+<<belongsTo>>
+
+    /* Relations : hasMany */
+
+<<hasMany>>
+
+    /* Relations : morphTo */
+
+<<morphTo>>
+
+}        
+        

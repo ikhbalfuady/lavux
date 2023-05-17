@@ -1,0 +1,19 @@
+# Standard Requirement Modules
+
+## API
+> placement in : app/Modules.php
+
+```
+modules = [
+<<modules>>
+]
+```
+
+## UI
+> placement in : ui/src/router/route.js
+
+```
+routeUi = [
+<<routeUi>>
+]
+```

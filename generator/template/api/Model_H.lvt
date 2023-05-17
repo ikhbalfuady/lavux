@@ -1,0 +1,24 @@
+<?php
+
+namespace App\Models;
+
+// Helper & Supporting Model
+trait <<module>>_H
+{
+
+<<enumList>>
+
+    /* See details format on StandardModel->filterListBase() */
+    public function filterList () {
+        $overide = [
+<<filterList>>
+        ];
+        $res = $this->mergeFilterList(
+            $this->filterListBase(), // from "app/Traits/StandardModel"
+            $overide // you can overide previous value into real value you need 
+        );
+        return $res;
+       
+    }
+    
+}

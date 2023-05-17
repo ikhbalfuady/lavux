@@ -1,0 +1,232 @@
+
+// Reset & Normalizer
+$soft-color: #f9fbfc;
+$bg-color: #f1f5f9;
+$border-color: rgb(226 232 240 / 1);
+
+
+
+.theme-1 {
+  
+  /* Sidemenus / Sidenav */
+  // Layouting
+  aside {
+
+    .side-menu { /* bg menu */
+      box-shadow: 0 0 28px 0 rgba(82,63,105, 0.02);
+    }
+
+    .side-menu-wrapper {
+      padding: 8px 14px;
+    }
+
+    // Main
+    .side-menu-item {
+      padding: 2px;
+      border-radius: 5px;
+
+      .q-item__section--side { // icon
+        min-width: 20px !important;
+        padding-left:8px;
+
+
+        .q-icon {
+          font-size:1.3em !important;
+        }
+
+        .q-item__label--caption {
+          padding-right: 4px;
+        }
+      }
+
+      .q-item__section--main { // label
+        font-weight: 500;
+        font-size: 13px;
+      }
+    }
+
+    // Sub
+    .sub-menu {
+
+      .side-menu-wrapper {
+        padding: 0px 14px;
+      }
+
+      .side-menu-item {
+        border-radius: 0;
+        padding: 8px 2px;
+
+        .q-item__section--side { // icon
+          padding-left: 12px;
+        }
+        .q-item__section--main { // label
+          opacity: 0.8;
+          font-size: 0.96em;
+        }
+      }
+    }
+
+    .menu-active {
+      .q-item__section--side, .q-item__section {
+        font-weight: 700;
+      }    
+    }
+
+  }
+
+  // coloring (default)
+  aside {
+    .side-menu { /* bg menu */
+      background: #fff;
+      border-right: 1px solid $border-color;
+    }
+
+    .side-menu .head-menu { /* bg head menu */
+      border-bottom: 1px dashed rgba(204, 204, 204, 0.7);
+    }
+
+    .q-hoverable:hover > .q-focus-helper {
+      background: transparent;
+      opacity: 0 !important;
+    }
+
+    .side-menu-item:hover {
+      color: $primary;
+    }
+
+    // Sub
+    .sub-menu {
+      .side-menu-wrapper .q-item {
+        border-left: 4px solid rgba(204, 204, 204, 0.3);
+      }
+      .menu-active {
+        background: transparent;
+        .q-item__section--side, .q-item__section {
+          color: $primary;
+        }
+      }
+    }
+
+    .menu-active {
+      background-color: rgba(228, 225, 225, 0.3);
+      .q-item__section--side, .q-item__section {
+        color: $primary;
+      }    
+    }
+    
+    .app-name {
+      color: #7e7e7e;
+    }
+
+    .apiroot-label, .disable-mini {
+      color: $primary;
+      background: $bg-color;
+    }
+    .apiroot-label {
+      padding-left: 4px;
+      padding-right: 6px;
+    }
+  }
+
+  // coloring (primary)
+  aside {
+    .side-menu.primary { /* bg menu */
+      color: #fff;
+      background: $primary;
+      border-right: 0;
+
+      // Sub
+      .sub-menu {
+        .side-menu-wrapper .q-item {
+          border-left: 4px solid rgba(204, 204, 204, 0.3);
+        }
+        .menu-active {
+          border-left: 4px solid #fff !important;
+          .q-item__section--side, .q-item__section {
+            color: #fff !important;
+            opacity: 1;
+          }
+        }
+      }
+
+      .side-menu-item:hover {
+        color: #fff;
+        border-color:transparent !important;
+        .q-item__section {
+          opacity: 0.5;
+        }
+      }
+  
+      .side-menu-item .q-item__label--caption {
+        color: #fff;
+      }
+  
+      .app-name {
+        color: #ececec;
+      }
+    }
+
+    .menu-active {
+      background: rgba(231, 231, 231, 0.9);
+      .q-item__section--side, .q-item__section, .q-item__label--caption {
+        color: $primary !important;
+      }
+    }
+
+  }
+
+  .logo {
+    small {
+      position: relative;
+      left: 3px;
+      top: -5px;
+    }
+
+    .mini {
+      position: relative;
+      left: -3px;
+      top: 4px;
+    }
+  }
+
+  /*Top Menu */
+
+  .q-toolbar {
+    border-bottom: 1px solid $border-color;
+  }
+
+  .top-menu {
+    font-size: 13px;
+
+    .top-menu-list {
+      padding: 3px 5px 3px 5px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background 0.2s ease-out;
+    }
+
+    .top-menu-list:hover {
+      background: rgba(204, 204, 204, 0.2);
+    }
+
+  }
+
+  .top-menu-content {
+    .q-list .q-item .q-item__section--main {
+      font-size: 12px;
+    }
+  }
+
+  .table-data {
+    tbody {
+      background: #fff;
+    }
+    .q-table__middle, .q-table__bottom {
+      border: 0;
+      background: $bg-color;
+    }
+  }
+
+ 
+
+}

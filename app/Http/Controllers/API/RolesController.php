@@ -1,0 +1,141 @@
+<?php
+
+namespace App\Http\Controllers\API;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Repositories\RolesRepository;
+use Exception;
+
+class RolesController extends Controller
+{
+    protected $repository;
+    protected $request;
+    protected $relationDefault = [
+        'single' => [
+            'RoleGroup',
+
+        ],
+        'collection' => [
+            'RoleGroup',
+
+        ],
+    ];
+
+    public function __construct(
+        Request $request,
+        RolesRepository $repository
+    ){
+        $this->request = $request;
+        $this->repository = $repository;
+    }
+    
+    public function index() {
+        try {
+            // for passing permissions add query params '?_force'
+            $this->handlePermission(H_getControllerName(get_class()), 'browse');
+            $data = $this->repository->searchable($this->request, $this->relationDefault['collection']);
+            return H_apiResponse($data);
+        } catch (Exception $e){
+            return H_apiResError($e);
+        }
+    }
+
+    public function detail($id) {
+        try {
+            $this->handlePermission(H_getControllerName(get_class()), 'read');
+            $data = $this->repository->getRole($id);
+            return H_apiResponse($data);
+        } catch (Exception $e){
+            return H_apiResError($e);
+        }
+    }
+    
+    public function store($id = null) {
+        DB::beginTransaction();
+        try {
+            if ($id) $this->handlePermission(H_getControllerName(get_class()), 'update');
+            else $this->handlePermission(H_getControllerName(get_class()), 'create');
+           
+            $this->validateStore($this->request, $id);
+            $data = $this->repository->store($id);
+            DB::commit();
+
+            $msg = !$id ? 'Succes saving data' : 'Succes updating data';
+            return H_apiResponse($data, $msg, 200);
+        } catch (Exception $e){
+            DB::rollback();
+            return H_apiResError($e);
+        }
+    }  
+
+    /**
+     * Method need is PUT, for retrieve id in array
+     */
+    public function delete() {
+        DB::beginTransaction();
+        try {
+            $this->handlePermission(H_getControllerName(get_class()), 'delete');
+            $payload = $this->request->all();
+            $ids = H_hasProps($payload, 'id', []);
+            $permanent = H_checkProps($payload, 'permanent');
+            $totalId = count($ids);
+            if (!$totalId) throw new Exception('There\'s no data selected to delete.');
+
+            $data = $this->repository->deleteRestoreBatch($ids, 'delete', $permanent);
+            DB::commit();
+            return H_apiResponse($data, 'Success deleted $totalId data.', 200);
+        } catch (Exception $e){
+            DB::rollback();
+            return H_apiResError($e);
+        }
+    }
+
+    /**
+     * Method need is PUT, for retrieve id in array
+     */
+    public function restore() {
+        DB::beginTransaction();
+        try {
+            $this->handlePermission(H_getControllerName(get_class()), 'restore');
+            $payload = $this->request->all();
+            $ids = H_hasProps($payload, 'id', []);
+            $totalId = count($ids);
+            if (!$totalId) throw new Exception('There\'s no data selected to delete.');
+
+            $data = $this->repository->deleteRestoreBatch($ids, 'restore');
+            DB::commit();
+            return H_apiResponse($data, 'Success restored $totalId data.', 200);
+        } catch (Exception $e){
+            DB::rollback();
+            return H_apiResError($e);
+        }
+    }
+
+    // Validator
+    public function validateStore($request, $id = null) {
+        try {
+            $payload = $request->all();
+            if ($id && !$this->repository->checkDataBy('id', $id))  throw new Exception('Data not found');
+
+            $validator = $this->repository->validator($request->all(),
+                [
+                   'name' => 'required',
+                ],
+                [
+                   'name.required' => 'name is required', 
+                ]
+            );
+            if ($validator->fails()) {
+                $message = $validator->messages()->first();
+                throw new Exception($message);
+            }
+        } catch (Exception $e){
+            throw new Exception($e->getMessage());
+        }
+    }
+
+}
+
+        
