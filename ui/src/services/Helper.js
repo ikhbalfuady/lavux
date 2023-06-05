@@ -316,6 +316,21 @@ export const Helper = {
     return Helper.createYMD(this.getDateNow(), time)
   },
 
+  getStartEndDayOfMonth (date = null) {
+    date = date ? date : this.today(false)
+    const inputDate = new Date(date);
+    const month = inputDate.getMonth();
+    const year = inputDate.getFullYear();
+  
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+  
+    return {
+      from: this.createYMD(firstDay),
+      to: this.createYMD(lastDay)
+    }
+  },
+
   getKeyObject (obj, index = null) {
     let res = null
     const keys = Object.keys(obj)

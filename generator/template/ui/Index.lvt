@@ -115,10 +115,6 @@ export default defineComponent({
     })
     let topMenu = [
       { name: 'Refresh', event: onRefresh },
-      { name: 'Tools', children:[
-        {name: 'Export'},
-        {name: 'Download'},
-      ] },
     ]
     let table = reactive({
       ...Handler.table(Meta.columns, `${Meta.module}-columns`), // init default columns
@@ -163,7 +159,6 @@ export default defineComponent({
       controls.action = !props.hideAction
       
       if (props.hideTop) controls.title = false
-      else controls.title = true
 
       table.action = controls.action
     }

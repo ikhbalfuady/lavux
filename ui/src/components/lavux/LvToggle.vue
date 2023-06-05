@@ -1,5 +1,5 @@
 <template >
-   <div class="col-12 lv-field ">
+  <div :class="`lv-field col-${col}`">
     <div v-if="topLabel || $slots.topLabel" class="top-label" >
       <template v-if="$slots.topLabel"> <slot name="topLabel"></slot> </template>
       <template v-else> {{(label) ? label : ''}} </template>
@@ -91,6 +91,10 @@ export default defineComponent({
     readonly: {
       type: Boolean,
       default: false,
+    },
+    col: {
+      type: String,
+      default: '12',
     },
   },
   setup (props, { emit }) {

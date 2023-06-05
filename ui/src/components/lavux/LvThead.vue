@@ -106,7 +106,7 @@
       &nbsp; {{ label }}
     </template>
 
-    <template v-if="column.sort"  >
+    <template v-if="column.sort && !column.searching.show"  >
       <template v-if="table.sortColumn" >
         <q-icon v-if="column.sort === 'asc'" name="arrow_upward" class="link hover-primary" @click="sortData(column)">
           <q-tooltip>Click to sort: {{column.sort == 'asc' ? 'desc' : 'asc'}}</q-tooltip>

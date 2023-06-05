@@ -1,8 +1,8 @@
 <template>
-  <div class="lv-container q-pa-sm ">
-    <q-scroll-area ref="refContainer" :class="`bg-${background} radius shadow`" :thumb-style="$Config.scrollThumbStyle()"
+  <div :class="`lv-container ${noPadding ? '' : 'q-pa-sm'} `">
+    <q-scroll-area ref="refContainer" :class="`bg-${background} radius ${unelevated ? '' : 'shadow'} `" :thumb-style="$Config.scrollThumbStyle()"
       :bar-style="$Config.scrollBarStyle()" :style="`${contentStyle}`">
-      <div class="row q-pa-sm row-column-space">
+      <div :class="`row ${noPadding ? '' : 'q-pa-sm'} row-column-space`">
         <slot></slot>
       </div>
       <q-resize-observer @resize="onResize" />
@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import { ref, onBeforeMount, defineComponent } from 'vue'
+import { ref, computed, onMounted, defineComponent } from 'vue'
 export default defineComponent({
   name: 'LvContainer',
   props: {
@@ -25,29 +25,43 @@ export default defineComponent({
     },
     height: { // path index API of module
       type: String,
-      default: '40vh'
+      default: null
+    },
+    noPadding: { // path index API of module
+      type: Boolean,
+      default: false
+    },
+    unelevated: { // remove shadow
+      type: Boolean,
+      default: false
     },
   },
   setup(props) {
 
     const refContainer = ref(1)
 
-    onBeforeMount(() => {
+    onMounted(() => {
+      if (!props.height) {
+        setAutoHeight(contentHeight.value)
+      }
+    })
+
+    const contentHeight = computed(() => {
+      const container = refContainer.value.$el
+      const content = container.firstChild.firstChild
+      return content.getBoundingClientRect().height + 'px'
     })
 
     function onResize (e) {
+      // adjust and force height when in mobile
+      if (e.width < 560) setAutoHeight(contentHeight.value)
+      else setAutoHeight(props.height || contentHeight.value)
+    }
+
+    function setAutoHeight (height) {
       const container = refContainer.value.$el
-      const content = container.firstChild.firstChild
-      const contentHeight = content.getBoundingClientRect().height
-
-      // apply default height by config
-      container.style.height = props.height
-      container.style['max-height'] = props.height
-
-      if (e.width < 560) { // adjust and force height when in mobile
-        container.style.height = `${contentHeight}px`
-        container.style['max-height'] = `${contentHeight}px`
-      }
+      container.style.height = `${height}`
+      container.style['max-height'] = `${height}`
     }
 
     return {

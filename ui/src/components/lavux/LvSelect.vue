@@ -1,5 +1,5 @@
 <template >
-  <div class="col-12 lv-field row">
+  <div :class="`lv-field col-${col} row`">
     <div v-if="topLabel || $slots.topLabel" class="top-label" >
       <template v-if="$slots.topLabel"> <slot name="topLabel"></slot> </template>
       <template v-else> {{(label) ? label : ''}} </template>
@@ -27,7 +27,7 @@
       :hide-selected="hideSelected"
       @blur="onBlur"
       @focus="onFocus"
-      :hide-bottom-space="hideBottomSpace"
+      :hide-bottom-space="!useBottomSlot"
       @popup-show="onPopupShow"
       @popup-hide="onPopupHide"
     >
@@ -204,6 +204,10 @@ export default defineComponent({
       type: Boolean,
       default: false
     },
+    col: {
+      type: String,
+      default: '12',
+    },
   },
   setup (props, { emit }) {
     const { Config, Handler, Helper, SetMetaPage, Api} = useServices()
@@ -275,7 +279,7 @@ export default defineComponent({
       let res = false
       if (props.hideBottomSpace) res = false
       if (props.hint) res = true
-      if (props.rules) res = true
+      if (fixRules.value) res = true
       if (slots.hint) res = true
       return res
     })
@@ -535,7 +539,6 @@ export default defineComponent({
       
       if (ref) { // handle when click focus element
         ref.focus()
-        ref.filter()
       }
 
       focusEl.value = true

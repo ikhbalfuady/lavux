@@ -241,16 +241,16 @@ export default defineComponent({
       }
       initRefs(refDate.value, 1)
       initRefs(refTime.value, 1)
+      
+      if (props.type) {
+        inputType.current = props.type
+        inputType.temp = props.type
+      }
     })
 
     watchEffect(() => { // handle reactive for declared element
       if (props.mode === 'number' || props.mode === 'currency') firstInitDataNumber(props.modelValue)
       else inputValue.value = props.modelValue
-
-      if (props.type) {
-        inputType.current = props.type
-        inputType.temp = props.type
-      }
     })
 
     watch(inputValue, () => {
@@ -289,7 +289,7 @@ export default defineComponent({
       let res = false
       if (props.hideBottomSpace) res = false
       if (props.hint) res = true
-      if (props.rules) res = true
+      if (fixRules.value) res = true
       if (slots.hint) res = true
       return res
     })

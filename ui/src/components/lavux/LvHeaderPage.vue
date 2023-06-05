@@ -1,12 +1,19 @@
 <template >
   <div class="col-12 row header-page">
+
     <div :class="`header-page-left row text-primary ${split && !single ? 'col-6' : 'col-12'} ${single ? '' : 'col-sm-5'}`">
       <!-- Back Button -->
-      <lv-btn v-if="showBack" round class="back-btn bg-grey-2 no-border" size="xs" 
-        @v-on:click="$emit('click')" :to="redirectTo" v-close-popup>
-        <q-icon name="arrow_back"/>
-      </lv-btn>
+      <template v-if="showBack">
+        <lv-btn v-if="history" round class="back-btn bg-grey-2 no-border" size="xs" v-close-popup @v-on:click="$emit('click')" 
+          :to="history" 
+        > <q-icon name="arrow_back"/>
+        </lv-btn>
 
+        <lv-btn v-else round class="back-btn bg-grey-2 no-border" size="xs" v-close-popup @v-on:click="$emit('click')" 
+          :to="redirectTo" 
+        > <q-icon name="arrow_back"/>
+        </lv-btn>
+      </template>
       <slot name="left"></slot>
     </div>
     <div :class="`header-page-right row q-gutter-sm ${split && !single ? 'col-6' : 'col-12'} ${single ? '' : 'col-sm-7'}`">
@@ -17,6 +24,7 @@
 
 <script>
 import { ref, watch, onMounted, computed, defineComponent } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 export default defineComponent({
   name: 'LvHeaderPage',
   props: {
@@ -51,12 +59,17 @@ export default defineComponent({
 
   },
   setup (props, { emit }) {
-
+    const route = useRoute()
+    const router = useRouter()
     const redirectTo = computed(() => {
       let res = null
       if (props.backTo) res = props.backTo
       if (props.preventBackTo) res = null
       return res
+    })
+
+    const history = computed(() => {
+      return router.options.history.state.back
     })
 
     function handleBackEvent () {
@@ -66,7 +79,8 @@ export default defineComponent({
     return {
       handleBackEvent,
       // computed
-      redirectTo
+      redirectTo,
+      history,
     }
   }
 })

@@ -465,11 +465,11 @@ trait StandardRepo {
     public function setAppends($data, $appends) : object {
         try {
             foreach ($appends as $append) {
-            $append = str_replace(' ', '', $append);
-            $appendFunc = H_makeAppendName($append);
-            if(method_exists($this->model, "$appendFunc")) {
-                $data->role_name = $this->model->{$appendFunc}($data);
-            }
+				$append = str_replace(' ', '', $append);
+				$appendFunc = H_makeAppendName($append);
+				if(method_exists($this->model, "$appendFunc")) {
+					 $data->{$append} = $this->model->{$appendFunc}($data);
+				}
             }
             return $data;
         } catch (Exception $e){
