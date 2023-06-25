@@ -122,7 +122,7 @@ trait StandardRepo {
 
 
     /**  Fetching data by url with custom query
-     * 
+     *
      * @param Object $raw_request : "Illuminate\Http\Request" instance
      * @param Array $relations : <ArrayValue>
      */
@@ -143,7 +143,7 @@ trait StandardRepo {
     }`
 
     # Reserve keywords :
-    _columns    : define select columns     
+    _columns    : define select columns
     _limit      : define limit data | for fetch all data set = 0
     _page       : define page / offset data
     _contains   : define like query more than 1 columns
@@ -163,7 +163,7 @@ trait StandardRepo {
 
     ## Available Operator
     - is_null               : ?colum_name=is_null
-    - is_null               : ?colum_name=is_not_null
+    - is_not_null           : ?colum_name=is_not_null
     - not (not equal)       : ?colum_name=not:value
     - like                  : ?colum_name=like:value
 
@@ -173,7 +173,7 @@ trait StandardRepo {
     - less than             : ?column_name=lt:integerValue
     - less than equal       : ?column_name=lte:integerValue
 
-    > greater, less with equal date/dateTime format 
+    > greater, less with equal date/dateTime format
     - greater than          : ?column_name=gtd:dateValue
     - greater than equal    : ?column_name=gted:dateValue
     - less than             : ?column_name=ltd:dateValue
@@ -185,15 +185,15 @@ trait StandardRepo {
 
     ## Search Contains
     Searching multiple columns, place the column with coma separator
-    USAGE                   : ?_contains=column_one,column_two:value 
+    USAGE                   : ?_contains=column_one,column_two:value
 
     ## Search IN & NOT IT
-    can do multiple columns 
-    use "|" for separator columns & value of column 
+    can do multiple columns
+    use "|" for separator columns & value of column
     use "," for separator value
-    USAGE                   : ?_in=column:value1,value2 
+    USAGE                   : ?_in=column:value1,value2
     USAGE (multiple column) : ?_in=age|score:21,22,23,24,25|80,100
-    if want use NOT IT, just replace "_in" into "_not_in" 
+    if want use NOT IT, just replace "_in" into "_not_in"
 
     ## Order
     - ASCENDING             : ?order=column:asc
@@ -206,7 +206,7 @@ trait StandardRepo {
 
     ## Search by Relation
     searching data with relation with specific column
-    * USAGE 
+    * USAGE
     - default               : ?{relationName}.{column}={value}
     - custom operator       : ?{relationName}.{column}={operator}:{value}
     ex ?Role.name=like:Admin
@@ -217,7 +217,7 @@ trait StandardRepo {
             'relationName' => (new ModelName())->getColumns(),
         ];
     }`
-    
+
     */
     public function searchable (Request $raw_request, $relations = []) : mixed {
         try {
@@ -249,7 +249,7 @@ trait StandardRepo {
             }
 
             /* WHERE Condition maker */
-            $filterList = $this->model->filterList(); // getting filter list columns default  
+            $filterList = $this->model->filterList(); // getting filter list columns default
             foreach ($this->columns() as $k => $col) {
                 $column = H_findArrayByKey($filterList, 'id', $col);
                 $isJson = ($column && isset($column['multiple'])) ? $column['multiple'] : false;
@@ -288,7 +288,7 @@ trait StandardRepo {
                             $operator = $q->operator;
                             $fixValue = $q->value;
                             $data = $data->whereHas($relation, function ($raw) use ($column, $fixValue, $operator) {
-                       
+
                                 // handle is null & not null
                                 $nulledOperator = false;
                                 if ($operator) {
@@ -313,15 +313,15 @@ trait StandardRepo {
                                 // default
                                 if (empty($operator)) $raw->where($column, $fixValue);
 
-                               
+
 
                             });
                         }
                     }
                 }
-                
+
             }
-   
+
             /* ORDERING Condition */
             $order = isset($payload['_order']) ? H_extractValueParams($payload['_order']) : [];
             if (count($order)) $data = $this->makeOrderQuery($data, $order);
@@ -371,7 +371,7 @@ trait StandardRepo {
         try {
             $res = $default;
             $data = H_hasProps($payload, $attr); // get by custom column
-            if ($data) { 
+            if ($data) {
                 $data = explode(',', $data);
                 $res = [];
                 foreach ($data as $val) {
@@ -388,7 +388,7 @@ trait StandardRepo {
         try {
             $res = $default;
             $data = H_hasProps($payload, $attr); // get by custom column
-            if ($data) { 
+            if ($data) {
                 $data = explode(',', $data);
                 $res = [];
                 foreach ($data as $val) {
@@ -412,11 +412,11 @@ trait StandardRepo {
 
     public function dynamicList (Object $raw_data, Array $config = null, $appends = []) : mixed {
         try {
-            $first        = H_keyExist($config, '_first'); // flag to get first data | _denied table flag 
+            $first        = H_keyExist($config, '_first'); // flag to get first data | _denied table flag
             $limit        = $this->getPaginationLimit($config);
             $currentPage  = H_hasProps($config, '_page', 1);
             $tableMode    = H_checkProps($config, '_table');
-   
+
             if ($first) {
                 $data = $raw_data->first();
                 if ($data) $data = $this->setAppends(H_toArrayObject($data), $appends);
@@ -424,8 +424,8 @@ trait StandardRepo {
                 // setup paging
                 $totalData    = $raw_data->count();
                 $skip         = ($currentPage - 1) * $limit;
-                if ($limit === 0) $data = H_toArrayObject($raw_data->get()); 
-                else $data = H_toArrayObject($raw_data->skip($skip)->limit($limit)->get()); 
+                if ($limit === 0) $data = H_toArrayObject($raw_data->get());
+                else $data = H_toArrayObject($raw_data->skip($skip)->limit($limit)->get());
                 // setup appends
                 foreach ($data as $i => $row) {
                     $row = $this->setAppends($row, $appends);
@@ -439,7 +439,7 @@ trait StandardRepo {
                     $paginator = new LengthAwarePaginator($data, $totalData, $limit, $currentPage, $config);
                     $paginator->withQueryString()->render();
                     return $paginator;
-                } 
+                }
             }
             return $data;
         } catch (Exception $e){
@@ -452,10 +452,10 @@ trait StandardRepo {
             $limit        = $this->getPaginationLimit($config);
             $currentPage  = H_hasProps($config, '_page', 1);
             $skip         = ($currentPage - 1) * $limit;
-   
-            if ($limit === 0) $data = $raw_data->get(); 
-            else $data = $raw_data->skip($skip)->limit($limit)->get(); 
-            
+
+            if ($limit === 0) $data = $raw_data->get();
+            else $data = $raw_data->skip($skip)->limit($limit)->get();
+
             return $data;
         } catch (Exception $e){
             throw new Exception(H_throw($e, '[StandardRepo::paging]'));
@@ -483,7 +483,7 @@ trait StandardRepo {
             $queries = H_extractOperatorAndValue(explode('|', $value));
             if (!count($queries)) return $raw_model;
             foreach ($queries as $q) {
- 
+
                 $operator = $q->operator;
                 $fixValue = $q->value;
 
@@ -495,7 +495,7 @@ trait StandardRepo {
                         $nulledOperator = true;
                     }
                     elseif ($operator == 'is_not_null') {
-                        
+
                         $raw_model = $raw_model->whereRaw($column .' IS NOT NULL');
                         $nulledOperator = true;
                     }
@@ -545,7 +545,7 @@ trait StandardRepo {
                                 $nulledOperator = true;
                             }
                         }
-    
+
                         // handle custom statement
                         if ($fixValue !== null ) {
                             if (!$nulledOperator) {
@@ -673,7 +673,7 @@ trait StandardRepo {
         $total = $total->count();
         return $total ? $total : 0;
     }
-    
+
     public function countDataInPeriode ($date_selector = 'created_at', $in_periode = false) : int {
         $today = H_today();
         $year = H_formatDate($today, 'Y');
@@ -709,8 +709,8 @@ trait StandardRepo {
             $counter = 1 + $this->countData();
             $counter_in_periode = 1 + $this->countDataInPeriode($date_selector, true);
 
-            if ($index < 1) $index = $index = 1 + $this->model->query()->withTrashed()->count(); 
- 
+            if ($index < 1) $index = $index = 1 + $this->model->query()->withTrashed()->count();
+
             $params = [
                 "prefix" => $prefix,
                 "counter" => $counter,
@@ -738,7 +738,7 @@ trait StandardRepo {
 
     /**
      * Delete & Restore data multiple
-     * 
+     *
      * @param array $ids : array value of id
      * @param string $mode : flaging for : delete | restore
      * @param boolean $permanent : trigger for delete permanent or soft delete (default)
@@ -765,10 +765,10 @@ trait StandardRepo {
                 if (env('LOG_USER', false)) $set = "$set, deleted_by = NULL, updated_by = '$userId'";
             }
 
-            $id = implode(',', $ids);            
+            $id = implode(',', $ids);
             if ($permanent) DB::select("DELETE $table WHERE id IN($id) ");
             else DB::select("UPDATE $table SET $set WHERE id IN($id) ");
-      
+
 
         } catch (Exception $e) {
             throw new Exception(H_throw($e, '[StandardRepo::deleteRestoreBatch]'));
@@ -778,5 +778,5 @@ trait StandardRepo {
     public function DB ($table) {
         return DB::table($table);
     }
-    
+
 }
