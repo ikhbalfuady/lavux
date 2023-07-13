@@ -4,13 +4,9 @@
     <div :class="`header-page-left row text-primary ${split && !single ? 'col-6' : 'col-12'} ${single ? '' : 'col-sm-5'}`">
       <!-- Back Button -->
       <template v-if="showBack">
-        <lv-btn v-if="history" round class="back-btn bg-grey-2 no-border" size="xs" v-close-popup @v-on:click="$emit('click')" 
-          :to="history" 
-        > <q-icon name="arrow_back"/>
-        </lv-btn>
-
-        <lv-btn v-else round class="back-btn bg-grey-2 no-border" size="xs" v-close-popup @v-on:click="$emit('click')" 
-          :to="redirectTo" 
+        <lv-btn round class="back-btn bg-grey-2 no-border" size="xs" v-close-popup
+          @v-on:click="handleBackEvent"
+          :to="redirectTo"
         > <q-icon name="arrow_back"/>
         </lv-btn>
       </template>
@@ -36,6 +32,10 @@ export default defineComponent({
       type: [String, Object],
       default: null,
     },
+    backToStrict: {
+      type: [String, Object],
+      default: null,
+    },
     preventBackTo: {
       type: Boolean,
       default: false,
@@ -48,7 +48,7 @@ export default defineComponent({
       type: String,
       default: null,
     },
-    split: { // split area left & right always set col 6 
+    split: { // split area left & right always set col 6
       type: Boolean,
       default: false,
     },
@@ -61,18 +61,23 @@ export default defineComponent({
   setup (props, { emit }) {
     const route = useRoute()
     const router = useRouter()
-    const redirectTo = computed(() => {
-      let res = null
-      if (props.backTo) res = props.backTo
-      if (props.preventBackTo) res = null
-      return res
-    })
 
     const history = computed(() => {
       return router.options.history.state.back
     })
 
+    const redirectTo = computed(() => {
+      let res = null
+      if (props.backTo) res = props.backTo
+      if (history.value) res = history.value
+      if (props.backToStrict) res = props.backToStrict
+      if (props.preventBackTo) res = null
+      return res
+    })
+
+
     function handleBackEvent () {
+      emit('click')
       if (props.backEvent) props.backEvent()
     }
 

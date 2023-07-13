@@ -1,10 +1,10 @@
 
 <template >
   <div :class="`${(fromModal) ? '' : 'q-pb-xs'} row root`" style="min-width:75vw">
-  
+
 
   <q-form @submit="submit" class="col-12 row animated fadeIn" >
-    
+
     <!-- Header -->
     <lv-header-page class="bg-white" split showBack :backTo="{name: Meta.module}" :preventBackTo="fromModal ? true : false" >
       <template v-slot:left>
@@ -18,7 +18,7 @@
 
     <!-- Content -->
     <lv-loading v-if="loading" />
-    <lv-container v-if="!loading" class="col-12" height="30vh">
+    <lv-container v-if="!loading" class="col-12" :height="fromModal ? '60vh' : null">
 <<fieldSet>>
 
     </lv-container>
@@ -75,21 +75,21 @@ export default defineComponent({
         }
         onRefresh()
         resetModel()
-      } 
+      }
     })
 
     /* COMPUTED : all computed variables are defined here */
     const fromModal = computed(() => { return (props.data)? props.data : null })
-    const id = computed(() => { 
-      return (fromModal.value && fromModal.value.id) ? fromModal.value.id : Handler.urlParams(route, 'id', true) 
+    const id = computed(() => {
+      return (fromModal.value && fromModal.value.id) ? fromModal.value.id : Handler.urlParams(route, 'id', true)
     })
     const type = computed(() => { return (id.value) ? 'update' : 'create' })
-    
+
     /* METHODS : all methods are defined here */
     function onRefresh () {
       if (id.value) getData()
     }
-    
+
     function backToRoot (data) {
       if (!fromModal.value) {
         console.log('br', data)
@@ -98,7 +98,7 @@ export default defineComponent({
       } else if (closeForm.value) closeForm.value.$el.click()
 
     }
-    
+
     function resetModel () {
       Object.assign(dataModel.value, Meta.model)
     }
@@ -117,7 +117,7 @@ export default defineComponent({
         if (dataModel.value.id !== null) update()
         else save()
       }
-    } 
+    }
 
     const callback  = (status, data, message) => {
       Helper.loadingOverlay(false)

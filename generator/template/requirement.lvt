@@ -1,7 +1,8 @@
 # Standard Requirement Modules
 
 ## API
-> placement in : app/Modules.php
+> place it or add in : config/lv_modules.php
+assign the value into "return"
 
 ```
 modules = [
@@ -10,7 +11,8 @@ modules = [
 ```
 
 ## UI
-> placement in : ui/src/router/route.js
+> place it or add in : ui/src/router/route.js
+assign into "moduleList"
 
 ```
 routeUi = [

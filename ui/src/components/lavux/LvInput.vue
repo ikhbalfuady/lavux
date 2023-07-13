@@ -5,7 +5,7 @@
       <template v-else> {{(label) ? label : ''}} </template>
     </div>
     <q-field :label-slot="useInnerLabel" :outlined="outlined" :borderless="borderless" dense :debouce="debouce"
-      :class="elClass" 
+      :class="elClass"
       v-model="inputValue"
       @input="$emit('update:value', $event)"
       :clearable="clearable"
@@ -29,7 +29,7 @@
           />
         </template>
 
-        <template v-else-if="mode === 'date' || mode === 'datetime' || mode === 'time'" > 
+        <template v-else-if="mode === 'date' || mode === 'datetime' || mode === 'time'" >
           <template v-if="!isReadOnly" >
             <!-- Tanggal -->
             <q-popup-proxy v-if="mode !== 'time'" cover :ref="refs[refDate]" transition-show="jump-up" transition-hide="jump-down" >
@@ -56,8 +56,8 @@
           </div>
         </template>
 
-        <template v-else-if="mode === 'daterange'" > 
-          <template v-if="!isReadOnly" > 
+        <template v-else-if="mode === 'daterange'" >
+          <template v-if="!isReadOnly" >
             <!-- Tanggal -->
             <q-popup-proxy v-if="mode !== 'time'" cover :ref="refs[refDate]" transition-show="jump-up" transition-hide="jump-down" >
               <q-date mask="YYYY-MM-DD" range clearable
@@ -241,7 +241,7 @@ export default defineComponent({
       }
       initRefs(refDate.value, 1)
       initRefs(refTime.value, 1)
-      
+
       if (props.type) {
         inputType.current = props.type
         inputType.temp = props.type
@@ -251,6 +251,9 @@ export default defineComponent({
     watchEffect(() => { // handle reactive for declared element
       if (props.mode === 'number' || props.mode === 'currency') firstInitDataNumber(props.modelValue)
       else inputValue.value = props.modelValue
+
+      inputType.temp = props.type
+      inputType.current = props.type
     })
 
     watch(inputValue, () => {

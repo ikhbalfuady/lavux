@@ -5,7 +5,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
 
 /* Interface modules
-    ## Legend 
+    ## Legend
     > structure of text
 
     - {var_name} [{var_type}] : {description}
@@ -20,17 +20,17 @@ use Illuminate\Support\Facades\File;
 
     # column structure (object)
     - name [string]         : column name of scope
-    - type [string]         : type reference of laravel migration type, however we have grouped some custom types 
-                              which will automate the creation of custom elements of the app  
+    - type [string]         : type reference of laravel migration type, however we have grouped some custom types
+                              which will automate the creation of custom elements of the app
         Avail value :
         - unsignedBigInteger: is default for id, and auto set primary & index
-        - string            : same as varchar(255)  
+        - string            : same as varchar(255)
         - enum              : enumerable, when using this dont forget to add "enum_list"
         - boolean           : in table DB will be tinyInt
         - double            : for integer & decimal, dont forget add 'length' & if tou want to set specific decimal set 'length2'
         - double            : for integer & decimal, dont forget add 'length' & if tou want to set specific decimal set 'length2'
 
-    
+
     - enum_list         : enum list, set value using array value
 
 */
@@ -151,15 +151,15 @@ class ModuleGenerator
                     $fk = ($fk == '_self') ? $col->name : $fk;
                     $fk2 = $bt->owner_key ?? 'id';
                     $fk2 = ($fk2 == '_self') ? 'id' : $fk2;
-        
+
                     $data['belongsTo'] .= '    public function '.$btName.'() {'."\r\n";
                     $data['belongsTo'] .= '        return $this->belongsTo('.$bt->model.'::class, "'.$fk.'", "'.$fk2.'")->withTrashed();'."\r\n";
                     $data['belongsTo'] .= '    }'."\r\n\r\n";
-                    
+
                     // make searchRelations
                     $data['searchRelations'] .= "            '".$bt->name."' => '".$bt->model."',"."\r\n";
                 }
-                
+
             }
 
             // make hasMany
@@ -170,7 +170,7 @@ class ModuleGenerator
                     $fk = (isset($hm->foreign_key)) ? $hm->foreign_key : $col->name;
                     $fk = ($fk == '_self') ? $col->name : $fk;
                     $fk2 = (isset($hm->local_key)) ? $hm->local_key : 'id';
-    
+
                     $data['hasMany'] .= '    public function '.$hmName.'() {'."\r\n";
                     $data['hasMany'] .= '        return $this->hasMany('.$hm->model.'::class, "'.$fk2.'", "'.$fk.'");'."\r\n";
                     $data['hasMany'] .= '    }'."\r\n\r\n";
@@ -187,7 +187,7 @@ class ModuleGenerator
 
             $type = ModuleGenerator::getCastType($col->type);
             $coma = ModuleGenerator::makeComma($index, $last);
-            
+
             // make fillable
             if($col->name !== 'id') {
                 if ($col->type == 'morph') {
@@ -241,7 +241,7 @@ class ModuleGenerator
         // baking
         $last = count($module->column) - 1;
         foreach ($module->column as $index => $col) {
-            
+
             // make Enum
             $enumName = H_makeEnumName($col->name);
             if ($col->type == 'enum')  {
@@ -289,7 +289,7 @@ class ModuleGenerator
             if ($key_value) $assigment .= "\r\n"."                ".$key_value;
             if ($key_label) $assigment .= "\r\n"."                ".$key_label;
             if ($multiple) $assigment .= "\r\n"."                ".$multiple;
-            
+
             $filter = "
             [
                 'id'        => '{$col->name}',
@@ -351,7 +351,7 @@ class ModuleGenerator
         $fulltext = [];
         $last = count($module->column) - 1;
         foreach ($module->column as $index => $col) {
- 
+
             $type = ModuleGenerator::getCastType($col->type);
             $attributes = '';
             if (isset($col->attributes)) {
@@ -379,18 +379,18 @@ class ModuleGenerator
                 $data['insert'] .= "            if (!Schema::hasColumn(\$tableName, '{$col->name}')) \$table->{$type}{$attributes}{$default};\r\n";
                 $data['delete'] .= "            if (!Schema::hasColumn(\$tableName, '{$col->name}')) \$table->dropColumn('{$col->name}');\r\n";
             }
-          
+
             if (isset($col->attributes) && in_array('fulltext', $col->attributes)) {
-               $fulltext[] = $col->name; 
+               $fulltext[] = $col->name;
             }
 
         }
-        
+
         $fulltextScript = '';
         if (count($fulltext)) {
             $fulltextScript = '
-            DB::statement("ALTER TABLE 
-                '.$table.' ADD FULLTEXT 
+            DB::statement("ALTER TABLE
+                '.$table.' ADD FULLTEXT
                 '.$table.'_fulltext('.implode(',', $fulltext).')
             "); ';
             $data['fulltext'] .= "            {$fulltextScript}\r\n";
@@ -433,7 +433,7 @@ class ModuleGenerator
         // baking
         foreach ($module->column as $index => $col) {
 
-            // make "with" relation 
+            // make "with" relation
             $relation = '';
             if (isset($col->belongsTo)) {
                 $relation .= '            ' . "'".$col->belongsTo->name."', //belongsTo" . "\r\n";
@@ -469,14 +469,14 @@ class ModuleGenerator
                 $data['validationMessage'] .= '                   "'.$col->name.'.required" => "'.$col->name.' is required", ' ."\r\n";
             }
         }
-            
+
         // building
         foreach ($data as $key => $value) {
             $script = str_replace(ModuleGenerator::selector($key), $value, $script);
         }
 
         // executing
-        $script = str_replace('"',"'", $script); // make consistence single quote 
+        $script = str_replace('"',"'", $script); // make consistence single quote
         $scope = $scope ? "$scope/" : '';
         $generate = ModuleGenerator::makeFile($moduleName.$suffix.".php", base_path("generator/output/{$scope}{$suffix}/"), $script);
         if ($generate->result) $instCmd->line("API::$suffix .......... [Generated]");
@@ -523,7 +523,7 @@ class ModuleGenerator
 
                 } else $data['fieldSet'] .= '            $data->'.$col->name.' = '.$getter.' ' ."\r\n";
             }
-        
+
         }
 
         // building
@@ -532,7 +532,7 @@ class ModuleGenerator
         }
 
         // executing
-        $script = str_replace('"',"'", $script); // make consistence single quote 
+        $script = str_replace('"',"'", $script); // make consistence single quote
         $scope = $scope ? "$scope/" : '';
         $generate = ModuleGenerator::makeFile($moduleName.$suffix.".php", base_path("generator/output/{$scope}{$suffix}/"), $script);
         if ($generate->result) $instCmd->line("API::$suffix .......... [Generated]");
@@ -562,8 +562,8 @@ class ModuleGenerator
             // make list modules
             $data['modules'] .= "   '{$module->name}',\r\n";
             $data['routeUi'] .= "   '{$routeUi}',\r\n";
- 
-        
+
+
         }
 
         // building
@@ -572,7 +572,7 @@ class ModuleGenerator
         }
 
         // executing
-        $script = str_replace('"',"'", $script); // make consistence single quote 
+        $script = str_replace('"',"'", $script); // make consistence single quote
         $scope = $scopeObj ? "{$scopeObj->name}/" : '';
         $generate = ModuleGenerator::makeFile("{$scopeObj->name}_requirements.md", base_path("generator/output/$scope"), $script);
         if ($generate->result) $instCmd->line("{$scopeObj->name} Requirements .......... [Generated]");
@@ -636,9 +636,12 @@ class ModuleGenerator
             if ($col->type == 'integer' || $col->type == 'double' ) $validationType = 'min-numb-1';
             $defaultValidation = "\$Handler.rules(dataModel.{$col->name}, '$validationType')";
             $defaultValidation = ':rules="'.$defaultValidation.'" ';
-        
+
             $decimalPlace = '';
             if (isset($col->length2)) $decimalPlace = ':decimal="'.$col->length2.'"';
+
+            if (isset($col->attributes) && !in_array('nullable', $col->attributes)) $required = $defaultValidation;
+
             $string = '      <lv-input col="4" label="'.$label.'" v-model="dataModel.'.$col->name.'" '.$required.'/>';
             $integer = '      <lv-input mode="number" col="4" label="'.$label.'" v-model="dataModel.'.$col->name.'" '.$required.'/>';
             $decimal = '      <lv-input mode="currency" '.$decimalPlace.' col="4" label="'.$label.'" v-model="dataModel.'.$col->name.'" '.$required.'/>';
@@ -669,7 +672,7 @@ class ModuleGenerator
                 $data['fieldSet'] .= "\n".'      <lv-input col="4" label="'.$label.' type" v-model="dataModel.'.$col->name.'_type" />';
                 $data['fieldSet'] .= "\n".'      <lv-input col="4" label="'.$label.' id" v-model="dataModel.'.$col->name.'_id" />';
             }
-        
+
         }
 
         // building
@@ -698,7 +701,7 @@ class ModuleGenerator
         // preparation replacement
         $slug = strtolower(H_splitUppercaseWithStrip($module->name));
         $fname = strtolower($suffix);
- 
+
         // executing
         $scope = $scope ? "$scope/" : '';
         $generate = ModuleGenerator::makeFile($fname.".vue", base_path("generator/output/{$scope}UI/$slug/"), $script);
@@ -784,11 +787,11 @@ class ModuleGenerator
         $relatedColumns = array_filter($columns, function($column) {
             return isset($column->belongsTo) && isset($column->belongsTo->name);
         });
-        
+
         $relatedNames = array_map(function($column) {
             return "'" . $column->belongsTo->name . "'";
         }, $relatedColumns);
-        
+
         return implode(', ', $relatedNames);
     }
 
@@ -837,7 +840,7 @@ class ModuleGenerator
     }
 
     static function makeComma ($index, $last) {
-        $res = ', 
+        $res = ',
         ';
         if($index == $last) $res = '';
         return $res;
@@ -879,7 +882,7 @@ class ModuleGenerator
                         "name" => str_replace('.json', '', $file),
                         "file_name" => $file,
                     ];
-                } 
+                }
                 else $res[] = $file;
             }
         }
@@ -917,7 +920,7 @@ class ModuleGenerator
         }
 
         fwrite($create, $data);
-        fclose($create);  
+        fclose($create);
         $msg = "Success write file in : $outputDir.$name";
         if ($instCmd) $instCmd->error($msg);
         return (object) [ "result" => true, "message" => $msg];
