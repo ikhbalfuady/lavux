@@ -7,10 +7,10 @@ import { Helper } from './services/Helper'
 import { colors } from 'quasar'
 
 const { getPaletteColor } = colors
-  
+
 export const Config = {
 
-  appName () { 
+  appName () {
     const cfg = Helper.findObjectByKey(this.settings(), 'name', 'company')
     let res = '...'
     if (cfg) res = cfg?.list?.app_name?.value || res
@@ -24,7 +24,7 @@ export const Config = {
       let res = '/assets/icon.png'
       if (cfg) res = cfg?.list?.url_icon?.value || res
       return res
-    } 
+    }
     else {
       let res = '/assets/logo.png'
       if (cfg) res = cfg?.list?.url_logo?.value || res
@@ -39,7 +39,7 @@ export const Config = {
     return res
   },
 
-  version () { return '1.0.6' },
+  version () { return '1.0.7' },
 
   getApiRoot () {
     const cfg = Helper.findObjectByKey(this.settings(), 'name', 'company')
