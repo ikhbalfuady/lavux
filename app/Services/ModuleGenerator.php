@@ -359,8 +359,11 @@ class ModuleGenerator
             }
 
             $spec = '';
-            if (isset($col->length)) $spec .= ",{$col->length}";
-            if (isset($col->length2)) $spec .= ",{$col->length2}";
+            if($col->type == 'double') {
+                if (isset($col->length)) $spec .= ",{$col->length}";
+                if (isset($col->length2)) $spec .= ",{$col->length2}";
+            }
+
             if ($col->type == 'enum') {
                 $enums = isset($col->enum_list) ? json_encode($col->enum_list) : '[]';
                 $enums = str_replace('"',"'", $enums);
@@ -370,7 +373,12 @@ class ModuleGenerator
             $type = "{$col->type}('{$col->name}'$spec)";
 
             $default = '';
-            if (isset($col->default)) $default = '->default('.ModuleGenerator::getValueOnString($col->default).')';
+            if (property_exists($col, 'default')) {
+                $colDefault = $col->default;
+                $types = ['double', 'integer', 'boolean'];
+                if (in_array(strtolower($col->type), $types)) $colDefault = $colDefault ? $colDefault : 0;
+                if ($colDefault !== NULL) $default = '->default('.ModuleGenerator::getValueOnString($colDefault).')';
+            }
 
             if ($col->type == 'morph') {
                 $data['insert'] .= "            \$table->nullableMorphs('{$col->name}');\r\n";
