@@ -4,7 +4,7 @@
       <template v-if="$slots.topLabel"> <slot name="topLabel"></slot> </template>
       <template v-else> {{(label) ? label : ''}} </template>
     </div>
-    <q-select :ref="refs[refName]" :label-slot="useInnerLabel" :outlined="outlined" :borderless="borderless" dense :class="`col-12 ${elClass}`" 
+    <q-select :ref="refs[refName]" :label-slot="useInnerLabel" :outlined="outlined" :borderless="borderless" dense :class="`col-12 ${elClass}`"
       v-model="inputValue"
       @update:model-value="val => emiters(val)"
       :rules="fixRules"
@@ -30,6 +30,8 @@
       :hide-bottom-space="!useBottomSlot"
       @popup-show="onPopupShow"
       @popup-hide="onPopupHide"
+      :error="error"
+      :error-message="errorMessage"
     >
       <template v-slot:label>
         {{(label) ? label : ''}}
@@ -131,11 +133,11 @@ export default defineComponent({
       type: String,
       default: '_contains',
     },
-    limit: { // it will be query params search ex: ?limit=8 
+    limit: { // it will be query params search ex: ?limit=8
       type: [String, Number],
       default: '8',
     },
-    searchBy: { // the value is avail column of modules 
+    searchBy: { // the value is avail column of modules
       type: Array,
       default: () => { return ['name'] },
     },
@@ -213,7 +215,6 @@ export default defineComponent({
     const { Config, Handler, Helper, SetMetaPage, Api} = useServices()
     const slots = useSlots()
     const refs = {}
-    const defaultValue = ref(props.defaultData)
     const inputValue = ref(props.modelValue)
     const search = ref(null) // for handle caching search data via ajax
     const select = reactive({
@@ -236,11 +237,18 @@ export default defineComponent({
 
     watchEffect(() => { // handle reactive for declared element
       inputValue.value = props.modelValue;
+
+      if (!props.url) {
+        select.options = props.options;
+        select.tmp = props.options;
+      }
     })
 
-    watch(defaultValue, () => {
-      handleDefaultData()
-    })
+    watch(() => props.defaultData, (newValue) => {
+        select.options = []
+        select.options.push(newValue)
+      }
+    )
 
     const refName = computed(() => {
       let res = 'SLC_'
@@ -291,7 +299,7 @@ export default defineComponent({
       }
       return res
     })
- 
+
     const useInnerLabel = computed(() => {
       let res = (props.label) ? true : false
       if (props.topLabel) res = false
@@ -322,7 +330,7 @@ export default defineComponent({
       let res = false
       if (props.searchable) res = true
       if (props.url) res = true
-      if (!focusEl.value) res = false
+      // if (!focusEl.value) res = false
       return res
     })
 
@@ -330,7 +338,7 @@ export default defineComponent({
       let res = props.url
       if (res.includes("?")) {
         const parts = props.url.split("?")
-        res = parts[0] === str ? "" : parts[0]
+        res = parts[0] ? parts[0] : ""
       }
       return res
     })
@@ -369,7 +377,7 @@ export default defineComponent({
 
     function emiters (val) {
       const selected = select.tmp.find(r => r[optionValueDefault.value] === inputValue.value) || null
-      
+
       emit('update:modelValue', inputValue.value)
       emit('input', inputValue.value)
       emit('selected', selected)
@@ -402,6 +410,7 @@ export default defineComponent({
       Api.get(endpoint, async (status, data, message) => {
         if (status === 200) {
           initOptions(data)
+		  emiters()
         }
       })
     }
@@ -438,8 +447,8 @@ export default defineComponent({
 
       if (val) {
         const res = await Handler.filterSelect(val, update, 'select', options, searchField.value)
-        await update(() => { 
-          select.options = res.select 
+        await update(() => {
+          select.options = res.select
         })
       } else {
         await update(() => {
@@ -461,7 +470,7 @@ export default defineComponent({
       endpoint = `${endpoint}&force` // agar bisa akses langsung module tanpa permission
 
       // handle url params
-      console.log('urlparams', props.urlParams)
+      // console.log('urlparams', props.urlParams)
       let params = ''
       if (props.urlParams) {
         if (typeof(props.urlParams) === 'string') params = props.urlParams
@@ -527,22 +536,22 @@ export default defineComponent({
     function onPopupHide () {
       //
     }
-    
+
     function onBlur () {
       focusEl.value = false
       forceHideSelected.value = false
       initOptions(select.tmp)
     }
-    
-    function onFocus () {
-      const ref = refs[refName.value].value
-      
-      if (ref) { // handle when click focus element
-        ref.focus()
-      }
 
-      focusEl.value = true
-      if (props.searchable || props.url) forceHideSelected.value = true
+    function onFocus () {
+      // const ref = refs[refName.value].value
+
+      // if (ref) { // handle when click focus element
+      //   ref.focus()
+      // }
+
+      // focusEl.value = true
+      // if (props.searchable || props.url) forceHideSelected.value = true
       initOptions(select.tmp)
     }
 

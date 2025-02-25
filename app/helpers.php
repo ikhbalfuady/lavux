@@ -1,6 +1,5 @@
 <?php
 use Carbon\Carbon;
-
 /* Response Basic */
 
 
@@ -25,6 +24,7 @@ function H_api403 () {
     echo json_encode($result);
     die();
 }
+
 
 function H_apiResError ($e, $skipError = false) {
 
@@ -71,7 +71,7 @@ function H_redirectApi ($path, $host = null) {
 function H_today ($_time = true) {
     $time = '';
     if ($_time) $time = ' H:i:s';
-    return date_format(Carbon::now()->setTimezone(env('APP_TIMEZONE', 'Asia/Jakarta')),"Y-m-d$time"); 
+    return date_format(Carbon::now()->setTimezone(env('APP_TIMEZONE', 'Asia/Jakarta')),"Y-m-d$time");
 }
 
 function H_startOfMonth()
@@ -82,7 +82,7 @@ function H_startOfMonth()
 /* Accessor */
 
 /**
- * @params $instance : instance model 
+ * @params $instance : instance model
  */
 function H_getModuleName ($instance) : string {
     $moduleName = str_replace(
@@ -132,11 +132,29 @@ function H_getControllerName ($get_class_fn, $withSubfix = false) : string {
     return $name;
 }
 
+function H_modelPrefix($type = 'store') {
+    $db = [
+        'store' => 'App\Models\\',
+        'query' => "App\\\\Models\\\\",
+    ];
+
+    if ($type) $res = $db[$type];
+    else $res = $db;
+
+    return $res;
+}
+
+function H_refForQuery($moduleName) {
+    // $moduleName = $moduleName
+    $moduleName = H_modelPrefix('query') . H_getModelName($moduleName);
+    return $moduleName;
+}
+
 function H_checkArrayType ($array) {
     try {
         if (is_array($array)) return 'assoc';
         else if (is_object($array)) return 'object';
-        else throw new Exception("Invalid array type");
+        else return null;
     } catch (Exception $e) {
         throw new Exception(H_throw($e, '[H_checkArrayType] '));
     }
@@ -162,14 +180,16 @@ function H_checkProps ($payload, $attribute) : bool {
 function H_hasProps ($payload, $attribute, $default = null) {
     try {
         $type = H_checkArrayType($payload);
+        if (!$type) return $default;
+
         if ($type == 'assoc') {
             $check = H_checkProps($payload, $attribute);
             if ($check) {
                 return $payload[$attribute];
             } else return $default;
         } else {
-            return H_objHasProps($payload, $attribute, $default = null);
-        }   
+            return H_objHasProps($payload, $attribute, $default);
+        }
     } catch (Exception $e) {
         throw new Exception(H_throw($e, '[H_hasProps] '));
     }
@@ -177,7 +197,7 @@ function H_hasProps ($payload, $attribute, $default = null) {
 
 // aliases H_hasProps, for processing object
 function H_objHasProps ($obj, $attribute, $default = null) {
-    return ($obj && isset($obj->{$attribute})) ? $obj->{$attribute} : $default;
+    return ($obj && property_exists($obj, $attribute)) ? $obj->{$attribute} : $default;
 }
 
 function H_hasPropsJson ($payload, $attribute, $default = null) {
@@ -217,6 +237,25 @@ function H_hasPropsArray ($payload, $attribute, $default = null) {
     }
 }
 
+function H_handleRequestJson($payload, $attribute, $default = null)
+{
+    $check = H_checkProps($payload, $attribute);
+    if ($check) {
+        if (is_array($payload[$attribute])) return $payload[$attribute];
+        else return json_decode($payload[$attribute]);
+    } else return $default;
+}
+
+function H_handleRequestArray($payload, $attribute, $default = null)
+{
+    $check = H_checkProps($payload, $attribute);
+    if ($check) {
+        $res = json_decode($payload[$attribute]);
+        if (count($res)) return $res;
+        else return $default;
+    } else return $default;
+}
+
 function H_keyExist ($payload, $key) {
     return array_key_exists($key, $payload);
 }
@@ -248,19 +287,49 @@ function H_isDate($date, $format = 'Y-m-d') {
     return $d && $d->format($format) === $date;
 }
 
-function H_handlePeriodeDate($payload, $attr, $type = 'start', $_time = true) {
+function H_handlePeriodeDate($payload, $attr, $type = 'start', $_time = true, $throw = false) {
 
+    $showError = false;
     $res = H_today();
+    $format = 'Y-m-d';
+    if ($_time) $format = $format . ' H:i';
     if ($type == 'start') {
         $res = H_hasProps($payload, $attr) ?? H_startOfMonth();
+        $showError = $res && $throw ? !H_isDate($res, $format) : false;
         $time = $_time ? ' 00:00:00' : '';
-        $res = H_formatDate($res, "Y-m-d$time");
+        if ($res) $res = H_formatDate($res, "Y-m-d$time");
     } else {
         $res = H_hasProps($payload, $attr) ?? H_today(false);
+        $showError = $res && $throw ? !H_isDate($res, $format) : false;
         $time = $_time ? ' 23:59:59' : '';
-        $res = H_formatDate($res, "Y-m-d$time");
+        if ($res) $res = H_formatDate($res, "Y-m-d$time");
     }
+
+    if ($showError) throw new Exception("Value of [$attr] is not valid date!");
+
     return $res;
+}
+
+function H_handleJsonForStore($raw_request, $attr, $default = null) {
+    $request = $raw_request->all();
+    $res = null;
+    if ($raw_request->method() == 'POST') {
+        $res = H_handleRequestJson($request, $attr, $default);
+    } else {
+        $res = H_hasProps($request, $attr, $default);
+    }
+    return H_toArrayObject($res);
+}
+
+function H_pluck($data, $property) {
+    $data = H_toArrayObject($data);
+    $array = [];
+    foreach ($data as $item) {
+        if (isset($item->{$property})) {
+            $array[] = $item->{$property};
+        }
+    }
+    return $array;
 }
 
 /* Formating */
@@ -361,7 +430,7 @@ function H_arrayForJsonQuery($data) {
             $v = H_toNumber($v);
             if ($v) $res .= "[$v]";
         } else {
-            if ($v) $res .= '["'.$v.'"]'; // value must be wrapped by double quotes (") if valu is string 
+            if ($v) $res .= '["'.$v.'"]'; // value must be wrapped by double quotes (") if valu is string
         }
     }
     return $res != '' ? $res : null;
@@ -378,7 +447,7 @@ function H_toCamelCase ($string) {
     $string = str_replace('_', ' ', $string);
     $string = ucwords($string);
     $string = str_replace(' ', '', $string);
-    
+
     return $string;
 }
 
@@ -423,7 +492,7 @@ function H_makeEnumName($string) {
     foreach ($raw as $val) {
         if ($val) {
             $res .= ucwords($val);
-        } 
+        }
     }
     return $res;
 }
@@ -455,7 +524,29 @@ function H_fileSize($bytes, $decimals = 2) {
     return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . ' ' . @$size[$factor];
 }
 
- 
+function H_currency($_number = 0, $thousandSeparator = null, $decimalSeparator = null){
+    $number = floatval($_number);
+    $decimalDigit = 0;
+    if (H_haveDecimal($number)) $decimalDigit = 2;
+
+    $thousandSeparator = $thousandSeparator ? $thousandSeparator : env('SEP_THOUSAND', '.');
+    $decimalSeparator = $decimalSeparator ? $decimalSeparator : env('SEP_DECIMAL', '.');
+
+    $val = number_format($number, $decimalDigit, $decimalSeparator, $thousandSeparator);
+    return $val;
+}
+
+function H_haveDecimal($number){
+    if(fmod($number, 1) !== 0.00) return true;
+    else return false;
+}
+
+function H_removeNullArray($array) {
+    return array_filter($array, function ($value) {
+        return $value !== null;
+    });
+}
+
 /* Searchable utils */
 
 function H_makeAppendName ($name) {
@@ -463,7 +554,7 @@ function H_makeAppendName ($name) {
 }
 
 function H_operatorIdentifier () {
-    return ':';
+    return env('SEARCHABLE_OPERATOR_IDENTIFIER', ':');
 }
 
 function H_getOperatorType ($type) {
@@ -509,7 +600,7 @@ function H_getOperatorSearch($key, $indexSelector = 1) {
         elseif ($selector == 'is_null') $res = 'is_null';
         elseif ($selector == 'is_not_null') $res = 'is_not_null';
         else  $res = "=";
-    } else $res = "="; 
+    } else $res = "=";
 
     if (count($ex) == 1) {
         $selector = H_cleanStr($ex[0], ' ');
@@ -556,8 +647,8 @@ function H_getOperatorSearchList ($only = [], $exclude = []) {
                     $check = H_findArrayByKey($list, 'id', $ex);
                     if (!$check) $res[] = $val;
                 }
-            } else $res[] = $val; 
-        } 
+            } else $res[] = $val;
+        }
     }
 
     return $res;
@@ -594,7 +685,7 @@ function H_getValueForOperator ($key, $val, $indexSelector = 1) {
             if ($mode == 'start') $val = date('Y-m-d', strtotime($val)).' 00:00:00';
             if ($mode == 'end') $val = date('Y-m-d', strtotime($val)).' 23:59:59';
             if ($val == false) throw new Exception('Date value not compatible, please makesure the value is valid date format (Y-m-d) or (Y-m-d H:i)');
-        } 
+        }
 
         return $val;
     } catch (Exception $e) {
@@ -612,10 +703,10 @@ function H_extractKeyRelation ($key) {
     ) {
         $rel = explode('.', $ex[0]);
         // only accept 2 value, [0]Relation * [1]column name
-        if (!empty($rel[0]) && !empty($rel[1])) { 
+        if (!empty($rel[0]) && !empty($rel[1])) {
             $model = $rel[0];
             $col = $rel[1];
- 
+
             $res = [
                 'model' => $model,
                 'column' => $col,
@@ -623,16 +714,16 @@ function H_extractKeyRelation ($key) {
             ];
         }
     }
-    
+
     return $res;
 }
 
 function H_filterTableOperatorDefault ($type = null) {
     $type = $type ? strtolower($type) : $type;
     $res = ['='];
-    if ($type == 'string' 
-    || $type == 'integer' 
-    || $type == 'enum' 
+    if ($type == 'string'
+    || $type == 'integer'
+    || $type == 'enum'
     || $type == 'text'
     || $type == 'json'
     ) $res = ['=', 'like'];
@@ -727,7 +818,7 @@ function H_extractInQuery($val) {
     $valArr = explode(':', $val); // menggunakan delimiter ":"
     foreach ($valArr as $i => $param) { // mulai dari elemen kedua
         $columns = explode('|', $param);
-        
+
         if ($i === 0) { // init columns
             foreach ($columns as $col) {
                 if ($col) {
@@ -737,9 +828,9 @@ function H_extractInQuery($val) {
                     ];
                 }
             }
-           
+
         }
-        
+
         if ($i === 1) { // init values
             $values = explode('|', $param);
             foreach ($res as $ic => $col) {
@@ -747,9 +838,9 @@ function H_extractInQuery($val) {
                 $valueArr = H_explode(',', $value);
                 if ($value !== '') $res[$ic]['value'] = $valueArr;
             }
- 
+
         }
-      
+
     }
     return H_toArrayObject($res);
 }
@@ -758,11 +849,30 @@ function H_extractInQuery($val) {
 
 function H_explode($separator, $val) { // make clean value explode
     $ex = explode($separator, $val);
-   
+
     $ex = array_filter($ex, function($value) {
         return $value !== '';
     });
     return array_values($ex);
+}
+
+function H_getServerInfo($case) {
+
+    $protocol = strtolower(substr($_SERVER["SERVER_PROTOCOL"], 0, 5)) == 'https' ? 'https' : 'http';
+    $protocol = isset($_SERVER["HTTPS"]) ? 'https' : 'http';
+    $url = "" . $_SERVER['HTTP_HOST'] . "/";
+    $host = "$protocol://$url";
+    $dir = dirname(__FILE__);
+
+    if ($case == 'protocol') return $protocol;
+    elseif ($case == 'url') return $url;
+    elseif ($case == 'host') return $host;
+    elseif ($case == 'dir') return $dir;
+    elseif ($case == 'root') return $GLOBALS['rootDir'] . "/";
+    elseif ($case == 'upl_base') return $GLOBALS['upl_base'] . "/";
+    elseif ($case == 'upl_gallery') return $GLOBALS['upl_gallery'] . "/";
+    elseif ($case == 'upl_primary_img') return $GLOBALS['upl_primary_img'] . "/";
+    else return null;
 }
 
 function H_getIpClient () {
@@ -781,7 +891,7 @@ function H_getIpClient () {
     return $clientIp;
 }
 
-function H_sumArrayBy ($raw, $column, $column2 = null) {   
+function H_sumArrayBy ($raw, $column, $column2 = null) {
     $raw = H_toArrayObject($raw);
     $res = 0;
     foreach ($raw as $key => $row) {
@@ -795,3 +905,91 @@ function H_sumArrayBy ($raw, $column, $column2 = null) {
 function H_makeSerial ($prefix = null, $length = 9, $no = 1) {
     return $prefix.str_pad($no, $length, '0', STR_PAD_LEFT);
 }
+
+function H_uid() {
+
+    $pr_bits = null;
+    $fp = @fopen('/dev/urandom','rb');
+    if ($fp !== false) {
+        $pr_bits .= @fread($fp, 16);
+        @fclose($fp);
+    } else {
+        // If /dev/urandom isn't available (eg: in non-unix systems), use mt_rand().
+        $pr_bits = "";
+        for($cnt=0; $cnt < 16; $cnt++){
+            $pr_bits .= chr(mt_rand(0, 255));
+        }
+    }
+
+    $time_low = bin2hex(substr($pr_bits,0, 4));
+    $time_mid = bin2hex(substr($pr_bits,4, 2));
+    $time_hi_and_version = bin2hex(substr($pr_bits,6, 2));
+    $clock_seq_hi_and_reserved = bin2hex(substr($pr_bits,8, 2));
+    $node = bin2hex(substr($pr_bits,10, 6));
+
+    /**
+     * Set the four most significant bits (bits 12 through 15) of the
+     * time_hi_and_version field to the 4-bit version number from
+     * Section 4.1.3.
+     * @see http://tools.ietf.org/html/rfc4122#section-4.1.3
+     */
+    $time_hi_and_version = hexdec($time_hi_and_version);
+    $time_hi_and_version = $time_hi_and_version >> 4;
+    $time_hi_and_version = $time_hi_and_version | 0x4000;
+
+    /**
+     * Set the two most significant bits (bits 6 and 7) of the
+     * clock_seq_hi_and_reserved to zero and one, respectively.
+     */
+    $clock_seq_hi_and_reserved = hexdec($clock_seq_hi_and_reserved);
+    $clock_seq_hi_and_reserved = $clock_seq_hi_and_reserved >> 2;
+    $clock_seq_hi_and_reserved = $clock_seq_hi_and_reserved | 0x8000;
+
+    return sprintf('%08s-%04s-%04x-%04x-%012s',
+        $time_low, $time_mid, $time_hi_and_version, $clock_seq_hi_and_reserved, $node);
+}
+
+function H_isType($val) {
+    $res = 'string';
+    if (is_bool($val)) $res = 'boolean';
+    elseif (is_callable($val)) $res = 'callable';
+    elseif (is_int($val)) $res = 'integer';
+    elseif (is_float($val)) $res = 'float';
+    elseif (is_null($val)) $res = 'null';
+    elseif (empty($val)) $res = 'empty';
+    elseif (is_object($val)) $res = 'object';
+    elseif (is_array($val)) {
+        $res = 'array';
+    }
+    return $res;
+}
+
+function H_assetLink($link, $slug = '{api}', $placement = null) {
+    $res = $link;
+    if (strpos($link, $slug) !== false) {
+        $API = $placement ? $placement : env('API_URL');
+
+        $API = !$API ? null : str_replace('/api/', '', str_replace('/api', '', $API));
+
+        $link = str_replace($slug, '', $link);
+        $res = $API . $link;
+    }
+
+    return $res;
+}
+
+
+function H_fixAssetLink($data, array $replacement = ['url_logo', 'url_icon', 'url_logo_light'], $slug = '{api}', $placement = null) {
+    if (!$data) return $data;
+
+    foreach ($data as $key => $value) {
+        if (in_array($key, $replacement)) {
+            $data->{$key} = H_assetLink($value, $slug, $placement);
+        }
+    }
+
+    return $data;
+}
+
+
+

@@ -1,6 +1,7 @@
 <template>
   <div class="breadcumb">
-    <span class="page-title animated zoomIn" v-html="title"></span> 
+    <router-link v-if="to" :to="to" class="page-title animated zoomIn" :target="target" v-html="title" />
+    <span v-else class="page-title animated zoomIn" v-html="title"></span>
     <q-icon class="separator-icon" name="keyboard_double_arrow_right" />
     <span class="page-subtitle animated zoomIn text-capitalize" v-html="subtitle"></span>
   </div>
@@ -19,9 +20,17 @@ export default defineComponent({
       type: [String, Number, Boolean],
       default: null
     },
+    target: {
+      type: String,
+      default: null
+    },
+    to: {
+      type: [String, Object],
+      default: null
+    }
   },
   setup(props) {
-    
+
     return {
     }
   }

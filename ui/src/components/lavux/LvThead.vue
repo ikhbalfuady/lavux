@@ -1,5 +1,6 @@
 <template v-if="column">
-  <div>
+  <div :style="colWidth">
+
     <template v-if="column.searchable === true || column.searchable === 'advance' ">
       <q-icon  name="filter_list" :class="`${column.searching.show ? 'text-primary column-filtered' : ''} link`" >
         <q-popup-proxy>
@@ -81,7 +82,7 @@
         <q-tooltip anchor="center left" self="center right" :offset="[10, 10]">
           Filter by {{ label }}
         </q-tooltip>
-      </q-icon> 
+      </q-icon>
       &nbsp; {{ label }}
     </template>
 
@@ -173,6 +174,14 @@ export default defineComponent({
       // console.log(props.menu)
     })
 
+    const colWidth = computed(() => {
+      let widthValue = props.column.width
+      if (!widthValue && props.column.searching.show) {
+        widthValue = '120px' // default for search
+      }
+      return props.column.searching.show ? `width:${widthValue};` : null
+    })
+
     function setUpData () {
       let col = props.column
       col.searching.value = '' + search.value // convert to string, to fix searchable in lv-table
@@ -185,12 +194,12 @@ export default defineComponent({
         col.searching.operator2 = null
       }
       if (col.searching.value) col.searching.show = true
-      return col 
+      return col
     }
 
     function emiters () {
       const col = setUpData()
-      
+
       emit('update', col)
       if (autoFetch.value) emit('filter', col)
     }
@@ -205,7 +214,7 @@ export default defineComponent({
     function emitSearch () {
       const col = setUpData()
       // col.searching.operator = 'like'
-      
+
       emit('update', col)
       emit('filter', col)
     }
@@ -246,9 +255,9 @@ export default defineComponent({
         search_type.value = val
               console.log('search2', search2.value )
       }
-      
+
     }
-    
+
     function showSearch () {
       const col = setUpData()
       col.searching.value = null
@@ -266,7 +275,7 @@ export default defineComponent({
         search.value = null
         emit('filter', col)
       }
-        
+
     }
 
     return {
@@ -279,6 +288,8 @@ export default defineComponent({
       select,
       search_type,
       search2_type,
+      // computed
+      colWidth,
       // methods
       emiters,
       emitFilter,

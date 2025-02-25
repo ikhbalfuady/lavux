@@ -10,7 +10,7 @@
     </q-avatar>
 
     <div class="chip-text"><span style="text-transform: none;">{{user.username}}</span></div>
-    <q-menu @before-show="onRefresh" 
+    <q-menu @before-show="onRefresh"
       transition-show="jump-left"
       transition-hide="jump-right"
       class="chip-menu"
@@ -41,11 +41,11 @@
           <br>
           <q-toggle v-if="!topMenuMode" size="sm" @update:model-value="val => changeMiniMode(val)" v-model="miniMenuMode" left-label label="Mini Mode Menu" class="mb-1"/>
           <br v-if="!topMenuMode">
-          <q-toggle size="sm" @update:model-value="val => switchAction(val)" v-model="actionModal" left-label label="Action on Modal" class="mb-1"/>
+          <!-- <q-toggle size="sm" @update:model-value="val => switchAction(val)" v-model="actionModal" left-label label="Action on Modal" class="mb-1"/> -->
           <br>
           <q-btn-dropdown flat class="q-mb-sm full-width bg-grey-2 text-capitalize q-mt-sm" color="primary" label="More..." >
             <q-list>
-              
+
               <q-item dense clickable v-close-popup @click="openLink('profile')">
                 <q-item-section avatar>
                   <q-avatar icon="person" color="primary" text-color="white" size="xs"/>
@@ -107,7 +107,7 @@ export default defineComponent({
     })
 
     function onRefresh () {
-      
+
       primaryDrawer.value = store.getPrimaryDrawer
       actionModal.value = store.getActionModal
       miniMenuMode.value = store.getMiniMenuMode
@@ -182,7 +182,7 @@ export default defineComponent({
       overflow: hidden;
       text-overflow: ellipsis;
       width: 130px;
-      
+
     }
 
     .q-avatar {

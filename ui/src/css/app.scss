@@ -59,10 +59,10 @@ $linear-blue: linear-gradient(to right top, $blue-6, $light-blue-4);
 .shadow-inner	{ box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05); }
 
 
-/** * Extracted from: SweetAlert 
+/** * Extracted from: SweetAlert
 HTML usage :
 
-Minifiy : 
+Minifiy :
   <div class="success-checkmark"> <div class="check-icon"> <span class="icon-line line-tip"></span> <span class="icon-line line-long"></span> <div class="icon-circle"></div> <div class="icon-fix"></div> </div> </div>
 
 Orig :
@@ -351,7 +351,7 @@ a.link, a.link:visited, a.link:hover, a.link:active {
 }
 
 .quote {
-  white-space: pre-wrap; 
+  white-space: pre-wrap;
   word-wrap: break-word;
   border-left: 6px solid #ddd;
   padding-left: 10px;
@@ -365,7 +365,7 @@ a.link, a.link:visited, a.link:hover, a.link:active {
   color: #f2df75;
   padding: 20px;
   border-radius: 10px;
-  white-space: pre-wrap; 
+  white-space: pre-wrap;
   word-wrap: break-word;
 }
 
@@ -414,8 +414,8 @@ a.link, a.link:visited, a.link:hover, a.link:active {
 
 }
 
-.table-data.q-table--dense .q-table thead tr, 
-.table-data.q-table--dense .q-table tbody tr, 
+.table-data.q-table--dense .q-table thead tr,
+.table-data.q-table--dense .q-table tbody tr,
 .table-data.q-table--dense .q-table tbody td {
   height: 26px;
 }
@@ -496,8 +496,8 @@ a.link, a.link:visited, a.link:hover, a.link:active {
     padding-right: 5px;
   }
 
-  .q-field__inner::after:hover 
-  .q-field__inner::before:hover 
+  .q-field__inner::after:hover
+  .q-field__inner::before:hover
   .q-field__inner:hover {
     border: none !important;
     box-shadow: none !important;
@@ -513,7 +513,7 @@ a.link, a.link:visited, a.link:hover, a.link:active {
     font-weight: 400 !important;
   }
 
-  
+
 }
 
 .input-search-bar.q-field--standout{
@@ -552,8 +552,20 @@ a.link, a.link:visited, a.link:hover, a.link:active {
     top: 2px;
 
     .page-title {
+      color: $primary;
       font-size: 1.5rem;
       font-weight: bold;
+      text-decoration: none;
+      transition: opacity 0.2s ease-out;
+    }
+
+    a.page-title {
+      opacity: 1;
+      transition: opacity 0.2s ease-out;
+    }
+
+    a.page-title:hover {
+      opacity: 0.7;
     }
   }
 
@@ -561,7 +573,7 @@ a.link, a.link:visited, a.link:hover, a.link:active {
     display: flex; justify-content: flex-end;
     position: relative;
     right: -5px;
-    
+
     q-btn,
     .lv-btn
     {
@@ -589,11 +601,11 @@ a.link, a.link:visited, a.link:hover, a.link:active {
 
 
 
-.row-column-space > a, 
-.row-column-space > button, 
-.row-column-space > span, 
-.row-column-space > p, 
-.row-column-space > div, 
+.row-column-space > a,
+.row-column-space > button,
+.row-column-space > span,
+.row-column-space > p,
+.row-column-space > div,
 .row-column-space > label {
   padding: 5px 6px 7px 6px;
 }
@@ -746,7 +758,7 @@ a.link, a.link:visited, a.link:hover, a.link:active {
 
   .top-label,
   textarea,
-  .q-field__input, 
+  .q-field__input,
   .lv-select_display_value,
   .q-checkbox__label ,
   .q-toggle__label {
@@ -780,6 +792,10 @@ a.link, a.link:visited, a.link:hover, a.link:active {
     background-color: transparent !important;
   }
 
+  .q-field--auto-height.q-field--dense .q-field__native {
+    min-height: 24px;
+  }
+
 }
 
 .input-base {
@@ -806,11 +822,11 @@ a.link, a.link:visited, a.link:hover, a.link:active {
     position: relative;
     top: 10px;
   }
-  
+
 }
 
 .lv-image-uploader.bordered {
-  
+
   .q-avatar__content {
     border: 5px solid $border-color !important;
   }

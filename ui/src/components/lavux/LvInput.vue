@@ -231,6 +231,7 @@ export default defineComponent({
       current: props.type,
     })
     const inputValue = ref(props.modelValue)
+    const allowUpdateType = ref(true)
 
     onBeforeMount(()=> {
       if (props.modelValue) {
@@ -242,24 +243,23 @@ export default defineComponent({
       initRefs(refDate.value, 1)
       initRefs(refTime.value, 1)
 
-      if (props.type) {
-        inputType.current = props.type
-        inputType.temp = props.type
-      }
+      initTypeInput()
     })
 
     watchEffect(() => { // handle reactive for declared element
       if (props.mode === 'number' || props.mode === 'currency') firstInitDataNumber(props.modelValue)
       else inputValue.value = props.modelValue
-
-      inputType.temp = props.type
-      inputType.current = props.type
     })
 
     watch(inputValue, () => {
       if (props.type === 'number') inputValue.value = Helper.toNumber(inputValue.value)
       emit('update:modelValue', inputValue.value)
       emit('input', inputValue.value)
+    })
+
+
+    watch(() => props.type, (newValue) => {
+      initTypeInput()
     })
 
     const outlined = computed(() => {
@@ -419,7 +419,25 @@ export default defineComponent({
     function visiblePwd () {
       isPwd.value = !isPwd.value
       if (!isPwd.value) inputType.current = 'text'
-      else inputType.current = inputType.temp
+      else inputType.current = 'password'
+
+    }
+
+    function initTypeInput (set = null) {
+      if (!allowUpdateType.value) return false
+
+      const valType = set ? set : props.type
+
+      if (valType) {
+        inputType.current = valType
+        inputType.temp = valType
+      } else {
+        if (valType === 'currency' || valType === 'number') {
+          inputType.current = 'tel'
+          inputType.temp = 'tel'
+        }
+      }
+
     }
 
     return {

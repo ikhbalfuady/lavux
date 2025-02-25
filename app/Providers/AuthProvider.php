@@ -16,40 +16,42 @@ class AuthProvider extends ServiceProvider
 
     /* Checker */
     public static function has($modelName, $permission) {
+        if (H_keyExist($_GET, '_force')) return true;
+
         $user_id = AuthProvider::userId();
-        $forced = H_keyExist($_GET, '_force');
-        $res = true;
-        $module = H_splitUppercaseWithSpace($modelName);
+        $res = $user_id ? AuthProvider::checkPermission($user_id, $modelName, $permission) : false;
+        if (!$res) echo H_api403();
+    }
 
-        if ($forced) $res = true;
-        else {
-            if (!$user_id) $res = false;
-            else {
-                $selector = '
-                    users.id as user_id,
-                    users.role_id as role_id,
-                    role_permissions.permission_id as permission_id,
-                    permissions.module as module,
-                    permissions.name as name
-                ';
+    /**
+     * @param String|Integer $userId
+     * @param String $permissionModule : value of permissions.module
+     * @param String $permissionName : value of permissions.name
+     */
+    public static function checkPermission ($userId, $permissionModule, $permissionName) {
+        $module = H_splitUppercaseWithSpace($permissionModule);
 
-                $role_permissions = 'role_permissions';
-                $permissions = 'permissions';
+        $selector = '
+            users.id as user_id,
+            users.role_id as role_id,
+            role_permissions.permission_id as permission_id,
+            permissions.module as module,
+            permissions.name as name
+        ';
 
-                $raw = Users::selectRaw($selector)
-                        ->where('users.id', $user_id)
-                        ->leftJoin($role_permissions, $role_permissions . '.role_id', '=', 'users.role_id')
-                        ->leftJoin($permissions, $permissions . '.id', '=', $role_permissions . '.permission_id')
-                        ->where($permissions . '.module', $module)
-                        ->where($permissions . '.name', $permission)
-                        ->whereNull($role_permissions . '.deleted_at')
-                        ->first();
+        $role_permissions = 'role_permissions';
+        $permissions = 'permissions';
 
-                $res = !empty($raw) ? true : false;
-            }
-        }
+        $raw = Users::selectRaw($selector)
+                ->where('users.id', $userId)
+                ->leftJoin($role_permissions, $role_permissions . '.role_id', '=', 'users.role_id')
+                ->leftJoin($permissions, $permissions . '.id', '=', $role_permissions . '.permission_id')
+                ->where($permissions . '.module', $module)
+                ->where($permissions . '.name', $permissionName)
+                ->whereNull($role_permissions . '.deleted_at')
+                ->first();
 
-        if (!$res) echo H_api403(); 
+        return !empty($raw) ? true : false;
     }
 
     public static function permissionBase ($user_id, $group = true) {
@@ -70,7 +72,7 @@ class AuthProvider extends ServiceProvider
         ->whereNull($role_permissions . '.deleted_at')
         ->join($permissions, $permissions . '.id', '=', $role_permissions . '.permission_id');
 
-        
+
         $raw = $raw->get();
         if ($group) $raw = $raw->groupBy('module');
 
@@ -83,49 +85,62 @@ class AuthProvider extends ServiceProvider
             if (!$user_id) throw new Exception('user id not set');
             $data = AuthProvider::permissionBase($user_id);
             return H_toArrayObject($data);
-        } catch (Exception $e){ 
+        } catch (Exception $e){
             throw new Exception('[AuthProvider::getPermissionUser] ' . $e->getMessage());
-        }        
+        }
     }
 
     /* Login & Register Handler */
     public static function registerUser(Request $request) {
         try {
-            $input = $request->all();
+            $payload = $request->all();
+
+            $input = [ 'name' => H_hasProps($payload, 'name') ];
+
+            $input['email'] = H_hasProps($payload, 'email');
+            $input['username'] = H_hasProps($payload, 'username');
+            $input['password'] = H_hasProps($payload, 'password');
+
+            if (strlen($input['name']) < 4) throw new Exception("Name min 4 character");
+            if (strlen($input['username']) < 4) throw new Exception("Username min 4 character");
+            if (strlen($input['password']) < 4) throw new Exception("Password min 4 character");
 
             if (AuthProvider::checkEmail($input['email'])) throw new Exception('Email has registered, please use another.');
             if (AuthProvider::checkUsername($input['username'])) throw new Exception('username has registered, please use another.');
-            
+
             $input['password'] = bcrypt($input['password']);
             $user = Users::create($input);
             $user['token'] = AuthProvider::generateToken($user);
             $user = $user->toArray();
- 
+
             return $user;
         } catch (Exception $e){
             throw new Exception(H_throw($e, '[AuthProvider::register]'));
-        } 
+        }
 
     }
 
-    public static function checkEmail($email) : bool {
+    public static function checkEmail($email, $id = null) : bool {
         try {
-            $user = DB::table((new Users)->getTable())->select(['email'])->whereEmail($email)->first();
+            $user = DB::table((new Users)->getTable())->select(['email'])
+                    ->when($id, function ($q) use($id) { return $q->where('id', '!=', $id); })
+                    ->whereEmail($email)->first();
             return $user ? true : false;
-        } catch (Exception $e){ 
+        } catch (Exception $e){
             throw new Exception(H_throw($e, '[AuthProvider::checkEmail]'));
-        } 
+        }
 
     }
 
-    public static function checkUsername($username) : bool {
+    public static function checkUsername($username, $id = null) : bool {
         try {
-            $user = DB::table((new Users)->getTable())->select(['username'])->whereUsername($username)->first();
+            $user = DB::table((new Users)->getTable())->select(['username'])
+                    ->when($id, function ($q) use($id) { return $q->where('id', '!=', $id); })
+                    ->whereUsername($username)->first();
             return $user ? true : false;
-        } catch (Exception $e){ 
+        } catch (Exception $e){
             throw new Exception(H_throw($e, '[AuthProvider::checkUsername]'));
-        } 
-
+        }
     }
 
     public static function loginAlt($userName_Email, $password, $type = 'email') : object {
@@ -146,15 +161,13 @@ class AuthProvider extends ServiceProvider
 
             } else throw new Exception('Username or email not defined.');
 
-            $auth = AuthProvider::auth();
-
             // checking password
             if (!$checkPass) throw new Exception('Wrong password.');
-            return $auth;
+            return AuthProvider::auth();
 
-        } catch (Exception $e){ 
+        } catch (Exception $e){
             throw new Exception(H_throw($e, '[Users::loginAlt]'));
-        } 
+        }
     }
 
     public static function login(Request $request) : object {
@@ -170,7 +183,7 @@ class AuthProvider extends ServiceProvider
             if ($email) $user = AuthProvider::loginAlt($email, $password, 'email');
             else if ($username) $user = AuthProvider::loginAlt($username, $password, 'username');
             else throw new Exception('Username or email not defined.');
- 
+
             if (!$user) throw new Exception('Authenticate failed, please try again.');
             $user['token'] = AuthProvider::generateToken($user);
             $role= Roles::find($user['role_id']);
@@ -216,7 +229,7 @@ class AuthProvider extends ServiceProvider
                 $msg .= 'Email : '.$check->email.'<br>';
                 $msg .= 'Role : '.$check->role_name.'<br>';
             }
-            throw new Exception($msg); 
+            throw new Exception($msg);
         }
     }
 
@@ -243,8 +256,8 @@ class AuthProvider extends ServiceProvider
             if ($current === $new) throw new Exception('The new password is the same as the old password, please use a different password!');
             if(!AuthProvider::checkPassword($id, $current)) throw new Exception('Current password is wrong!');
             if ($current === $new) throw new Exception('New password cannot be same as before!');
-            
-            return Users::whereId($id)->update([ 
+
+            return Users::whereId($id)->update([
                 'password' => bcrypt($new),
                 'updated_at' => H_today(),
                 'updated_by' => $userId,
@@ -261,7 +274,7 @@ class AuthProvider extends ServiceProvider
             $userId = AuthProvider::userId();
             if (!$userId) throw new Exception('You cannot perfom this, please login first!');
 
-            $fields =[ 
+            $fields =[
                 'name',
                 'username',
                 'email',
@@ -279,8 +292,8 @@ class AuthProvider extends ServiceProvider
                     $send[$field] = $value;
                 }
             }
-            
-            return Users::whereId($id)->update([ 
+
+            return Users::whereId($id)->update([
                 ...$send,
                 'updated_at' => H_today(),
                 'updated_by' => $userId,
@@ -292,7 +305,7 @@ class AuthProvider extends ServiceProvider
         }
     }
 
-    /* Utils */ 
+    /* Utils */
 
 
 }

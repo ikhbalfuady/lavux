@@ -48,12 +48,12 @@
 
               <template v-for="(val, attr) in stg.list" :key="i+'sitem'+attr">
 
-                <lv-input class="q-mb-md" v-if="val.raw.type === 'string' || val.raw.type === 'NULL'" @input="updateSetting(val.raw.id, val.value, stg.name, attr)" col="12" :label="$Helper.toLabel(attr)" v-model="val.value" />
-                <lv-toggle class="q-mb-md" v-if="val.raw.type === 'boolean'" @input="updateSetting(val.raw.id, val.value, stg.name, attr)" col="6" :label="$Helper.toLabel(attr)" v-model="val.value" />
-                <lv-input class="q-mb-md" v-if="val.raw.type === 'integer'" @input="updateSetting(val.raw.id, val.value, stg.name, attr)" mode="number" col="3" :label="$Helper.toLabel(attr)" v-model="val.value" />
-                <lv-input class="q-mb-md" v-if="val.raw.type === 'double'" @input="updateSetting(val.raw.id, val.value, stg.name, attr)" mode="currency" col="3" :label="$Helper.toLabel(attr)" v-model="val.value" />
-                <lv-input class="q-mb-md" v-if="val.raw.type === 'date'" @input="updateSetting(val.raw.id, val.value, stg.name, attr)" mode="date" col="3" :label="$Helper.toLabel(attr)" v-model="val.value" />
-                <lv-textarea class="q-mb-md" v-if="val.raw.type === 'array'" @input="updateSetting(val.raw.id, val.raw_value, stg.name, attr)" col="12" :label="$Helper.toLabel(attr)" v-model="val.raw_value" />
+                <lv-input class="q-px-xs q-mb-sm" v-if="val.raw.type === 'string' || val.raw.type === 'NULL'" @input="updateSetting(val.raw.id, val.value, stg.name, attr)" col="6" :label="$Helper.toLabel(attr)" v-model="val.value" />
+                <lv-toggle flat class="q-px-xs q-mb-sm" v-if="val.raw.type === 'boolean'" @input="updateSetting(val.raw.id, val.value, stg.name, attr)" col="6" :label="$Helper.toLabel(attr)" v-model="val.value" />
+                <lv-input class="q-px-xs q-mb-sm" v-if="val.raw.type === 'integer'" @input="updateSetting(val.raw.id, val.value, stg.name, attr)" mode="number" col="3" :label="$Helper.toLabel(attr)" v-model="val.value" />
+                <lv-input class="q-px-xs q-mb-sm" v-if="val.raw.type === 'double'" @input="updateSetting(val.raw.id, val.value, stg.name, attr)" mode="currency" col="3" :label="$Helper.toLabel(attr)" v-model="val.value" />
+                <lv-input class="q-px-xs q-mb-sm" v-if="val.raw.type === 'date'" @input="updateSetting(val.raw.id, val.value, stg.name, attr)" mode="date" col="3" :label="$Helper.toLabel(attr)" v-model="val.value" />
+                <lv-textarea class="q-px-xs q-mb-sm" v-if="val.raw.type === 'array'" @input="updateSetting(val.raw.id, val.raw_value, stg.name, attr)" col="12" :label="$Helper.toLabel(attr)" v-model="val.raw_value" />
 
               </template>
             </q-tab-panel>
@@ -108,7 +108,7 @@ export default defineComponent({
     })
 
     /* COMPUTED : all computed variables are defined here */
- 
+
     /* METHODS : all methods are defined here */
     function onRefresh() {
       getData()

@@ -10,6 +10,12 @@ modules = [
 ]
 ```
 
+```
+menus = [
+<<menus>>
+]
+```
+
 ## UI
 > place it or add in : ui/src/router/route.js
 assign into "moduleList"

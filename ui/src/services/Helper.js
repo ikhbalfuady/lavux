@@ -451,7 +451,14 @@ export const Helper = {
     }
     return res
   },
-
-
+  
+  ellipsis (str, len = 20) {
+    let res = '' + str
+    if (str) {
+      if (str.length > len) res = `${str.substring(0, len)}...`
+      if (res) return res
+      else return ''
+    } else return ''
+  }
 
 }

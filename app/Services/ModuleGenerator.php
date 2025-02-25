@@ -561,6 +561,7 @@ class ModuleGenerator
         $data = [
             "modules" => '',
             "routeUi" => '',
+            "menus" => '',
         ];
 
         // baking
@@ -571,7 +572,15 @@ class ModuleGenerator
             $data['modules'] .= "   '{$module->name}',\r\n";
             $data['routeUi'] .= "   '{$routeUi}',\r\n";
 
+            $name = H_splitUppercaseWithSpace($module->name);
+            $menu = "    [\r\n";
+            $menu .= "        'title' => '$name',\r\n";
+            $menu .= "        'route' => '$routeUi',\r\n";
+            $menu .= "        'icon' => 'fiber_manual_record',\r\n";
+            $menu .= "        'permissions' => ['$routeUi-browse'],\r\n";
+            $menu .= "    ],\r\n";
 
+            $data['menus'] .= $menu;
         }
 
         // building

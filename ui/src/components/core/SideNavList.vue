@@ -3,22 +3,9 @@
     <template v-for="(menu, index) in formatedMenus" :key="index">
 
       <template v-if="!menu.children.length ">
-        <router-link custom :to="{ name: menu.route }" v-slot="{ navigate, href }"  >
-          <div class="side-menu-wrapper">
-            <q-item dense clickable tag="a" :href="href" @click="navigate"
-              :class="[
-                'animated fadeIn',
-                'side-menu-item',
-                menu.collapse ? 'menu-active' : ''
-              ]"
-            >
-              <q-item-section avatar>
-                <q-icon :name="menu.icon" size="16px"/>
-              </q-item-section>
-              <q-item-section> {{ menu.title }} </q-item-section>
-              <q-tooltip v-if="miniMode" anchor="center right" self="center left" :offset="[10, 10]" >{{ menu.title }}</q-tooltip>
-            </q-item>
-          </div>
+        <side-nav-list-item v-if="menu.href" :href="menu.href" :menu="menu" :miniMode="miniMode" />
+        <router-link v-else custom :to="{ name: menu.route, params: menu?.route_params || null, query: menu?.route_query || null }" v-slot="{ navigate, href }"  >
+          <side-nav-list-item :href="href" :menu="menu" :miniMode="miniMode" @click="navigate" />
         </router-link>
       </template>
 
@@ -96,7 +83,7 @@ export default defineComponent({
     const deepthMenu = computed(() => {
       return props.deepth + 1
     })
-    
+
     const paddingSide = computed(() => {
       let res = null
       const padding = (props.deepth * 3) + 5

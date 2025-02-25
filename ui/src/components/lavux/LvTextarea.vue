@@ -1,5 +1,5 @@
 <template >
-   <div class="col-12 lv-field ">
+   <div :class="`lv-field col-${col}`">
     <div v-if="topLabel || $slots.topLabel" class="top-label" >
       <template v-if="$slots.topLabel"> <slot name="topLabel"></slot> </template>
       <template v-else> {{(label) ? label : ''}} </template>
@@ -9,11 +9,12 @@
       v-model="inputValue"
       :readonly="readonly"
       @update:model-value="emitters()"
-      :hint="hint"
       :placeholder="placeholderDefault"
       :rows="rows"
       :autogrow="autogrow"
       :rules="fixRules"
+      :hide-bottom-space="useBottomSlot"
+      :bottom-slots="useBottomSlot"
     >
       <template v-slot:label>
         {{(label) ? label : ''}}
@@ -27,7 +28,8 @@
         <slot name="append"></slot>
       </template>
 
-      <template v-if="$slots.hint" v-slot:hint>
+      <template v-if="$slots.hint || hint" v-slot:hint>
+        {{ hint }}
         <slot name="hint"></slot>
       </template>
     </q-input>
@@ -52,6 +54,10 @@ export default defineComponent({
     label: {
       type: String,
       default: null,
+    },
+    col: {
+      type: String,
+      default: '12',
     },
     rows: {
       type: String,
@@ -82,6 +88,10 @@ export default defineComponent({
       default: null
     },
     required: {
+      type: Boolean,
+      default: false
+    },
+    hideBottomSpace: {
       type: Boolean,
       default: false
     },
@@ -125,7 +135,7 @@ export default defineComponent({
       if (props.hint) res = true
       if (props.rules) res = true
       if (slots.hint) res = true
-      return true
+      return res
     })
 
     const useInnerLabel = computed(() => {
@@ -159,7 +169,7 @@ export default defineComponent({
       emit('input', inputValue.value)
       emit('update', inputValue.value)
     }
- 
+
     return {
       inputValue,
       // computed

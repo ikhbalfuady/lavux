@@ -7,30 +7,29 @@
   >
     <q-img class="absolute-top head-menu" :style="`height: ${headSize}`">
       <!-- Full Mode -->
-      <div class="logo bg-transparent full-width " v-if="!isMiniMode">
-        <img :src="primaryDrawer ? $Config.appLogoLight() : $Config.appLogo()" width="82" class="text-dark text-bold text-h4" alt="Lavux"/> <br>
-        <small class="app-name">{{ $Config.appName() }}</small>
+      <div class="logo bg-transparent full-width text-center" v-if="!isMiniMode">
+        <img :src="logo" width="114" class="text-dark text-bold text-h4" :alt="$Config.companyName()"/> <br>
 
-        <q-btn flat dense size="sm" class="apiroot-label text-normal" :label="$Config.getApiRoot()" icon="las la-info-circle">
+        <q-btn flat dense size="sm" class="apiroot-label text-normal q-mt-sm" :label="$Config.getApiRoot()" icon="las la-info-circle">
           <q-tooltip>Api Root</q-tooltip>
         </q-btn>
       </div>
       <!-- Mini Mode -->
       <div class="logo bg-transparent " v-if="isMiniMode">
-        <img class="mini" :src="$Config.appLogo(true)" style="width:32px !important"/> 
+        <img class="mini" :src="$Config.appLogo(true)" style="width:32px !important"/>
         <br>
         <q-btn @click="disableMiniMode" style="position:relative; top: 12px;" flat dense size="sm" class="disable-mini text-normal" icon="keyboard_double_arrow_right">
           <q-tooltip>Expand</q-tooltip>
         </q-btn>
       </div>
     </q-img>
-    
-    <q-scroll-area :style="`height: calc(94% - ${headSize}); margin-top: ${headSize};`"
+
+    <q-scroll-area :style="`height: calc(95% - ${headSize}); margin-top: ${headSize};`"
       :thumb-style="$Config.scrollThumbStyle()" :bar-style="$Config.scrollBarStyle()"
     >
       <side-nav-list :menus="formatedMenus" :miniMode="isMiniMode" />
     </q-scroll-area>
-    
+
   </q-drawer>
   <q-resize-observer @resize="onResize" />
 </template>
@@ -51,7 +50,7 @@ export default defineComponent({
 
     const route = useRoute()
     const router = useRouter()
- 
+
     // properties
     const formatedMenus = ref([])
     // automated menus
@@ -59,7 +58,7 @@ export default defineComponent({
     const menuBehavior = ref('desktop')
     const pauseOnResize = ref(false)
     const drawer = ref(false)
-    const headSize = ref('99px')
+    const headSize = ref('150px')
 
     const isTopNav = computed(() => { return GlobalStore.getTopMenuMode })
     const isMiniMode = computed(() => { return GlobalStore.getMiniMenuMode })
@@ -81,9 +80,15 @@ export default defineComponent({
       return route.name
     })
 
+    const logo = computed(() => {
+      let res = primaryDrawer.value ? Config.appLogoLight() : Config.appLogo()
+      res = Handler.assetLink(res)
+      return res
+    })
+
     watch(drawerState, async (newVal, val) => {
       drawer.value = newVal
-     
+
     })
 
     watch(isTopNav, async (newVal, val) => {
@@ -116,7 +121,7 @@ export default defineComponent({
         }
       })
     }
-    
+
     function _formatDrawer (menus) {
       let data = [];
       menus.map(r => {
@@ -179,6 +184,7 @@ export default defineComponent({
       formatedMenus,
       menuBehavior,
       headSize,
+      logo,
       // computed
       routeName,
       isTopNav,

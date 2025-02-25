@@ -62,24 +62,30 @@ Route::middleware('auth:sanctum')->group( function () use ($ApiNS)  {
 
 /* Without Authorization */
 // your custom route here
- 
+
 /*  Module Need Authorization */
 Route::middleware('auth:sanctum')->group( function () use ($ApiNS, $WebNS)  {
 
     Route::put("app/settings", $WebNS . "GlobalController@updateSetting");
-    
+
     $modules = config('lv_modules', []);
+    $excludeModules = [
+        //'YourModule',
+    ];
+
     foreach ($modules as $module) {
-        $slug = H_makeSlug($module);
-        Route::group(['prefix' => "/$slug"], function() use ($module, $WebNS, $ApiNS) {
-            Route::get('/', $ApiNS . $module . 'Controller@index');
-            Route::get('/{id}', $ApiNS . $module  . 'Controller@detail');
-            Route::post('/', $ApiNS . $module  . 'Controller@store');
-            Route::put('/delete', $ApiNS . $module  . 'Controller@delete');
-            Route::put('/restore', $ApiNS . $module  . 'Controller@restore');
-            Route::put('/{id}', $ApiNS . $module  . 'Controller@store');
-        });
-        
+        if (!in_array($module, $excludeModules)) {
+            $slug = H_makeSlug($module);
+            Route::group(['prefix' => "/$slug"], function() use ($module, $WebNS, $ApiNS) {
+                Route::get('/', $ApiNS . $module . 'Controller@index');
+                Route::get('/{id}', $ApiNS . $module  . 'Controller@detail');
+                Route::post('/', $ApiNS . $module  . 'Controller@store');
+                Route::put('/delete', $ApiNS . $module  . 'Controller@delete');
+                Route::put('/restore', $ApiNS . $module  . 'Controller@restore');
+                Route::put('/{id}', $ApiNS . $module  . 'Controller@store');
+            });
+        }
+
     }
 
 });

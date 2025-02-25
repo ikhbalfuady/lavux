@@ -28,7 +28,7 @@ class <<module>>Controller extends Controller
         $this->request = $request;
         $this->repository = $repository;
     }
-    
+
     public function index() {
         try {
             // for passing permissions add query params "?_force"
@@ -42,20 +42,20 @@ class <<module>>Controller extends Controller
 
     public function detail($id) {
         try {
-            $this->handlePermission(H_getControllerName(get_class()), 'read');
+            // $this->handlePermission(H_getControllerName(get_class()), 'read');
             $data = $this->repository->isExist($id, $this->relationDefault['single']);
             return H_apiResponse($data);
         } catch (Exception $e){
             return H_apiResError($e);
         }
     }
-    
+
     public function store($id = null) {
         DB::beginTransaction();
         try {
             if ($id) $this->handlePermission(H_getControllerName(get_class()), 'update');
             else $this->handlePermission(H_getControllerName(get_class()), 'create');
-           
+
             $this->validateStore($this->request, $id);
             $data = $this->repository->store($id);
             DB::commit();
@@ -66,7 +66,7 @@ class <<module>>Controller extends Controller
             DB::rollback();
             return H_apiResError($e);
         }
-    }  
+    }
 
     /**
      * Method need is PUT, for retrieve id in array
@@ -104,7 +104,7 @@ class <<module>>Controller extends Controller
 
             $data = $this->repository->deleteRestoreBatch($ids, 'restore');
             DB::commit();
-            return H_apiResponse($data, "Success restored $totalId data.", 200);
+            return H_apiResponse($data, "Success restored ".$totalId." data.", 200);
         } catch (Exception $e){
             DB::rollback();
             return H_apiResError($e);
@@ -136,4 +136,3 @@ class <<module>>Controller extends Controller
 
 }
 
-        

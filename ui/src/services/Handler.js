@@ -89,7 +89,9 @@ export const Handler = {
       },
       selected: [],
       cacheVisibilityColumn: cacheNameVisColumn, // caching name of visibility column saved
-      visibleColumns: []
+      visibleColumns: [],
+      searchable: true,
+      searchableOptions: [], // for searchable='select'
     }
 
     table.pagination.rowsPerPage = table.limit
@@ -149,6 +151,10 @@ export const Handler = {
     return table
   },
 
+  tableMakeLabelSelected (data, selected) {
+    return selected.length === 0 ? '' : `${selected.length} record${selected.length > 1 ? 's' : ''} selected of ${data.length}`
+  },
+
   // Preparation
   modalConfig (additional) {
     return {
@@ -173,11 +179,25 @@ export const Handler = {
     return val
   },
 
-  toObjectSelect (arr) {
+  /**
+   *
+   * @param {Array} arr array<String>
+   * @param {String} typeOfId : original, string, int
+   * @param {String} transformLabel : uppercase, capitalize
+   * @returns
+   */
+  toObjectSelect (arr, typeOfId = 'original', keyName = 'name', transformLabel = null) {
     let temp = []
     for (let i = 0; i < arr.length; i++) {
       let name =  this.columnToLabel(arr[i])
-      temp.push({ id: arr[i], name: name })
+      let id = arr[i]
+      if (typeOfId === 'string') id = '' + id
+      else if (typeOfId === 'int') id = parseInt(id)
+
+      if (transformLabel === 'uppercase') name = name.toUpperCase()
+      if (transformLabel === 'capitalize') name = Helper.ucwords(name)
+
+      temp.push({ id, [keyName]: name })
     }
     return temp
   },
@@ -241,12 +261,12 @@ export const Handler = {
   credentials (saving = null) {
     return Config.credentials(saving)
   },
-  
+
   permissionList (storing = null) {
     return Config.permissions(storing)
   },
 
-  // permissions = like  structure you get from login  
+  // permissions = like  structure you get from login
   makePermissions (permissions, store = false) {
     let perms = []
     for (let i = 0; i < permissions.length; i++) {
@@ -434,5 +454,65 @@ export const Handler = {
     let res = null
     if (data[key]) res = data[key]
     return res
+  },
+
+  makeSimpleSearchable (columns) {
+    return columns.map(c => {
+      let update = true
+      if (c.name === 'action') update = false
+      if (c.name === 'log_data') update = false
+      if (c.name === 'version_id') update = false
+      if (c.searchable === false) update = false
+
+      if (update) c.searchable = 'simple'
+      return c
+    })
+  },
+
+  getter (val, attr = null, _default = null) {
+    var res = _default
+    if (val) {
+      res = val
+      if (attr && val[attr]) res = val[attr]
+    }
+    return res
+  },
+
+  /**
+   *
+   * @param {object} fromModal : <computed:vue>
+   * @param {object} routeInstance : <rooute:vue-router>
+   * @param {array} accepted : <array> ex: ['page-add', 'page-edit']
+   * @returns String, Number, null
+   */
+  getIdParamPage(fromModal, routeInstance, accepted = []) {
+    const currentPageRoute = accepted.includes(routeInstance.name)
+    const ID = currentPageRoute ? this.urlParams(routeInstance, 'id', true) : null
+    return (fromModal.value && fromModal.value.id) ? fromModal.value.id : ID
+  },
+
+  eventListener (type, event) {
+    window.addEventListener(type, event)
+  },
+
+  submitForm (refForm) {
+    if (refForm && refForm.submit) refForm.submit()
+  },
+
+  assetLink(link, apiPlaceholder = '{api}') {
+    let res = link
+    if (link.includes(apiPlaceholder)) {
+      let API = Config.getApiRoot()
+
+      API = !API ? null : API
+        .replace('/api/', '')
+        .replace('/api', '')
+
+      link = link.replace(apiPlaceholder, '')
+      res = API + link
+    }
+
+    return res
   }
+
 }

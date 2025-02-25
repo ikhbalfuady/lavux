@@ -28,7 +28,7 @@ class GlobalController extends Controller
 
 
     /* GENERATOR */
-    
+
     public function listScope() {
         try {
 
@@ -81,12 +81,21 @@ class GlobalController extends Controller
     public function upload(){
         try {
             $request = $this->request;
+            $payload = $request->all();
+
+            $dir = H_hasProps($payload, 'dir', 'public/uploads');
+            $prefix = H_hasProps($payload, 'prefix', 'FU_');
+            $file_name = H_hasProps($payload, 'file_name', uniqid($prefix));
+            $extension = H_hasProps($payload, 'extension');
+            if (is_string($extension)) $extension = explode(",", $extension);
+
             if (!$request->hasFile('file')) throw new Exception("No file uploaded!");
 
             $upload = Uploader::upload(
-                $request->file('file'), 
-                'public/uploads', 
-                uniqid("FU_")
+                $request->file('file'),
+                $dir,
+                $file_name,
+                $extension,
             );
             return H_apiResponse($upload, "Upload sucessfully");
 
@@ -95,6 +104,17 @@ class GlobalController extends Controller
         }
     }
 
+    public function makeSymlink () {
+        try {
+            $output = shell_exec('php artisan storage:link');
+            return H_apiResponse(null, $output);
+
+        } catch (Exception $e){
+            return H_apiResError($e);
+        }
+
+
+    }
 
     /* Application Setting  */
 
@@ -145,5 +165,4 @@ class GlobalController extends Controller
 
 
 }
-  
-        
+

@@ -1,240 +1,257 @@
-<template>
-  <div class="lv-field">
-    <input type="file" :id="refFile" style="display: none;" @change="onFileSelected" />
 
-    <q-avatar v-if="avatar" :size="size" :round="rouded" class="lv-image-uploader bordered" >
-      <q-img :src="inputValue" :ratio="1" >
-        <template v-slot:error>
-          <div class="absolute-full flex flex-center bg-negative text-white" >
-            <small style="font-size: 13px;">Cannot load image</small>
-          </div>
-        </template>
-      </q-img>
-      <div class="absolute-bottom text-center" v-if="!display">
-        <input type="file" id="fileInput" style="display: none;" @change="onFileSelected" />
-        <lv-btn @click="pickFile" color="primary" icon="file_present" label="Change" class="upload-btn"/>
-        <lv-btn v-if="showUploadBtn" @click="uploadFile" color="green" icon="upload" label="Upload" class="q-ml-sm upload-btn"/>
-      </div>
-    </q-avatar>
+<template >
+  <div :class="`${(fromModal) ? '' : 'q-pb-xs'} row root`" style="min-width:75vw">
 
-    <q-field v-else :model-value="fileDisplay" :label-slot="useInnerLabel" outlined bottom-slots dense @click="pickFile"  >
-      <template v-slot:label>
-        <div class="row items-center all-pointer-events ellipsis">
-          {{ label }}
+
+  <q-form @submit="submit" class="col-12 row animated fadeIn" >
+
+    <!-- Header -->
+    <lv-header-page class="bg-white" split showBack :backTo="{name: Meta.module}" :preventBackTo="fromModal ? true : false" >
+      <template v-slot:left>
+        <lv-breadcumb v-if="!fromModal" :title="Meta.name" :subtitle="type"/>
+      </template>
+      <template v-slot:right>
+        <lv-btn labelVisibility icon="reply" label="Cancel" ref="closeForm" @click="backToRoot()" v-close-popup/>
+        <lv-btn v-if="!loading && !id" labelVisibility icon="check" label="Save & Lanjut Upload" @click="submit(null, true)" color="primary" :disable="disableSubmit"/>
+        <lv-btn v-if="!loading" labelVisibility icon="check" label="Save" color="primary" :disable="disableSubmit" type="submit"/>
+      </template>
+    </lv-header-page>
+
+    <!-- Content -->
+    <lv-loading v-if="loading" />
+    <lv-container v-if="!loading" class="col-12" :height="fromModal ? '60vh' : null">
+
+      <lv-input col="7" label="Judul*" v-model="dataModel.judul" required />
+
+      <lv-select col="3" label="Tingkat / Jenjang*" v-model="dataModel.tingkat_sekolah_id" required searchable
+        :url="`tingkat-sekolah?_columns=id,kode,nama,list_kelas`" :searchBy="['kode', 'nama']" merge-url
+        :option-label="opt => `(<b class='text-uppercase'>${opt.kode}</b>) ${opt.nama}`"
+        @selected="onPickedTingkat" :defaultData="dataModel.tingkat_sekolah"
+      />
+
+      <lv-select v-if="dataModel.tingkat_sekolah_id" col="2" label="Kelas*" v-model="dataModel.kelas"
+        :options="$Handler.toObjectSelect(select?.kelas || [], true, 'name')" required
+      />
+
+      <lv-select col="4" label="Kurikulum*" v-model="dataModel.kurikulum_id" searchable
+        :url="`kurikulum?_raw&_columns=id,nama,tahun`" :searchBy="['tahun', 'nama']" merge-url
+        :option-label="opt => `(<b class='text-uppercase'>${opt.tahun}</b>) ${opt.nama}`"
+        :defaultData="dataModel.kurikulum"
+      />
+
+      <lv-select col="4" label="Kategori Berkas" v-model="dataModel.kategori_berkas_id" searchable
+        :url="`kategori-berkas?_raw&_columns=id,nama,type&type=not:video`" :searchBy="['nama']" merge-url
+        option-label="nama" :defaultData="dataModel.kategori_berkas"
+      />
+
+      <lv-select v-if="dataModel.tingkat_sekolah_id && dataModel.kelas"
+        col="4" label="Mata Pelajaran" v-model="dataModel.mata_pelajaran_id" searchable
+        :url="`mata-pelajaran?_raw&_columns=id,nama,tingkat_sekolah_id,kelas&tingkat_sekolah_id=${dataModel.tingkat_sekolah_id}&kelas=${dataModel.kelas}`"
+        :searchBy="['keterangan', 'nama']" merge-url
+        option-label="nama" :defaultData="dataModel.mata_pelajaran"
+      />
+
+      <lv-input col="4" label="Pengarang" v-model="dataModel.pengarang" />
+      <lv-input col="4" label="Penerbit" v-model="dataModel.penerbit" />
+      <lv-input col="2" label="Tahun Terbit" v-model="dataModel.tahun_terbit" />
+
+
+      <lv-select col="2" label="Version*" v-model="dataModel.version_id" url="versions" searchable required
+        :option-label="opt => `(<b>${opt.kode}</b>) ${$Helper.beautyDate(opt.tanggal)} || ${opt.versi_saat_in ? 'Versi saat ini' : ''} <br> <small>${opt.keterangan}</small>`"
+        :defaultData="dataModel.version"
+      />
+
+      <lv-textarea col="12" label="Katerangan" v-model="dataModel.katerangan" />
+
+      <div v-if="!id" class="q-px-md col-12">
+          <lv-banner dense color="blue" class="text-blue-9">
+            <b>PERHATIAN!</b><br>
+            Cover & File buku baru bisa di upload setelah Anda menyimpan data ini.
+          </lv-banner>
         </div>
+      <template v-else>
+        <div class="q-px-md col-12">
+          <lv-banner dense color="orange" class="text-orange-9">
+            <b>PERHATIAN!</b><br>
+            Setelah memilih file yang akan di upload, pastikan Anda menekan tombol Upload terlebih dahulu di sebelah kanan kolom, <br>
+            tombol akan muncul setelah Anda memilih file, pastikan di kolom sudah ada tulisan <b class="text-primary text-bold">(Uploaded)</b> untuk memastikan
+            bahwa file sudah terupload, jika tidak file tidak akan disimpan pada data ini!
+          </lv-banner>
+        </div>
+
+        <lv-uploader col="6" label="Cover" v-model="dataModel.cover"
+          :extension="['jpg', 'jpeg', 'png', 'gif']" accept="image/*"
+          map-value="name" :body="$Config.upload('buku_cover', dataModel.uid)"
+          :view-file="dataModel.cover_url"
+        />
+
+        <lv-uploader col="6" label="File PDF" v-model="dataModel.file_path"
+          :extension="['pdf']" accept="application/pdf"
+          map-value="name" :body="$Config.upload('buku', dataModel.uid)"
+        />
       </template>
 
-      <template v-slot:control>
-        <small class="self-center full-width no-outline text-grey-7" tabindex="0">{{fileDisplay}}</small>
-      </template>
+    </lv-container>
 
-      <template v-slot:hint><span class="text-red-9"> {{ error }} </span></template>
+  </q-form>
 
-      <template v-slot:append >
-        <q-btn round dense flat icon="attachment" @click="pickFile" />
-      </template>
-      
-      <template v-slot:after >
-        <q-btn v-if="showUploadBtn" @click="uploadFile" dense icon="upload" color="primary" round unelevated>
-          <q-tooltip>Upload</q-tooltip>
-        </q-btn>
-      </template>
-    </q-field> 
   </div>
-  
-
 </template>
 
 <script>
-import { ref, computed, onBeforeMount, watchEffect, defineComponent } from 'vue'
+import { ref, reactive, computed, onBeforeMount, defineComponent } from 'vue'
 import useServices from './../../composables/Services'
+import { useRouter, useRoute } from 'vue-router'
+import Meta from './meta'
+
 export default defineComponent({
-  name: 'LvUploader',
+  name: Meta.moduleName+'Form',
   props: {
-    modelValue: {
-      type: [String, Object],
-      default: null,
-    },
-    placeholder: {
-      type: String,
-      default: null,
-    },
-    label: {
-      type: String,
-      default: null,
-    },
-    avatar: { // for image upload
-      type: Boolean,
-      default: false,
-    },
-    rouded: { // for image upload
-      type: Boolean,
-      default: false,
-    },
-    display: { // for image display only
-      type: Boolean,
-      default: false,
-    },
-    size: {
-      type: String,
-      default: '200px',
-    },
-    name: {
-      type: String,
-      default: 'file',
-    },
-    url: {
-      type: String,
-      default: 'upload',
-    },
-    body: {
+    data: {
       type: Object,
-      default: null,
+      default: null
     },
-    extension: { // ex : ['jpg', 'jpeg']
-      type: Array,
-      default: () => { return [] },
+    onSubmit: {
+      type: Function,
+      default: null
     },
-    accept: { // mime type
-      type: String,
-      default: null,
-    },
-    external: { // flag for upload to external url
+    disableMeta: { // disable setPageMeta
       type: Boolean,
       default: false,
-    },
-    autoUpload: { // flag for trigger upload after file picked
-      type: Boolean,
-      default: false,
-    },
+    }
   },
-  setup (props, { emit }) {
+  setup (props) {
     const { Config, Handler, Helper, Api, Store, SetMetaPage} = useServices()
+    const router = useRouter()
+    const route = useRoute()
 
-    const inputValue = ref(props.placeholder)
-    const rawFile = ref(null)
-    const error = ref(null)
-    const fileDisplay = ref(null)
-
-    onBeforeMount(()=> {
-      if (props.placeholder) {
-        inputValue.value = props.placeholder
-        fileDisplay.value = Helper.unReactive(inputValue.value)
-      }
-
+    // Properties
+    const closeForm = ref(1) // refs component
+    const loading = ref(false)
+    const stayAfterSubmit = ref(false)
+    const disableSubmit = ref(false)
+    const dataModel = ref({...Meta.model})
+    const topMenu = [{ name: 'Refresh', event: onRefresh }]
+    const select = reactive({ // select sources
+      kelas: []
     })
 
-    watchEffect(() => { // handle reactive for declared element
-      if (props.placeholder) {
-        inputValue.value = props.placeholder
-        fileDisplay.value = props.placeholder
-      }
-
-      if (rawFile.value) {
-        emit('update:modelValue', rawFile.value)
-      }
-    })
-
-    const useInnerLabel = computed(() => {
-      let res = (props.label) ? true : false
-      if (props.topLabel) res = false
-      return res
-    })
-
-    const refFile = computed(() => {
-      return Helper.makeRef(`file_${Helper.createUID(false)}`)
-    })
-
-    const showUploadBtn = computed(() => {
-      let res = rawFile.value ?? false
-      if (props.autoUpload) res = false
-      return res
-    })
-
-    // Methods
-
-    const pickFile = () => {
-      // Set accept attribute to limit file selection to specific types
-      const fileInput = document.querySelector(`#${refFile.value}`)
-      if (props.accept) fileInput.accept = props.accept
-      fileInput.click()
-    }
-
-    const onFileSelected = (event) => {
-      error.value = null
-      const file = event.target.files[0]
-      const reader = new FileReader()
-      if (!file)  {
-        error.value = 'Failed pick file'
-        return false
-      }
-
-      // validation 
-      if (props.extension.length && !props.extension.includes(file.type.split('/').pop())) {
-        error.value = 'File not accepted!'
-        return false
-      }
-
-      reader.onload = () => {
-        fileDisplay.value = file?.name || 'File selected'
-        rawFile.value = file
-        inputValue.value = reader.result
-        emit('picked', {name: fileDisplay.value, blob: inputValue.value, raw: rawFile.value })
-        if (props.autoUpload) uploadFile()
-      }
-      reader.readAsDataURL(file)
-     
-    }
-
-    const uploadFile = () => {
-      if (!rawFile.value) return
-
-      const paramName = props.name
-      let formData = new FormData()
-      formData.append(paramName, rawFile.value)
-
-      // custom param data
-      if(props.body) {
-        for (let [key, value] of Object.entries(props.body)) {
-          if (value) {
-            if (value === true) value = 1
-            if (value === false) value = 0
-            if (typeof value === 'object') value = JSON.stringify(value)
-            formData.append(key, value)
-          }
+    /* LIFECYCLE : all processes that are executed in a certain lifecycle are defined here */
+    onBeforeMount(() => {
+      if (!Meta.permission[type.value]) Handler._403()
+      else {
+        if (!fromModal.value) {
+          Handler.topMenu(topMenu)
+          if (!props.disableMeta) SetMetaPage(`${type.value} ${Meta.name}`)
         }
+        onRefresh()
+        resetModel()
       }
+    })
 
-      const external = props.external
+    /* COMPUTED : all computed variables are defined here */
+    const fromModal = computed(() => { return (props.data)? props.data : null })
+    const id = computed(() => {
+      return (fromModal.value && fromModal.value.id) ? fromModal.value.id : Handler.urlParams(route, 'id', true)
+    })
+    const type = computed(() => { return (id.value) ? 'update' : 'create' })
 
-      Api.post(props.url, formData, (status, data, message, response) => {
-        emit('uploaded', response)
-        if (status !== 200) {
-          error.value = 'Error when uploading File'
-          console.error(`Failed upload file to : ${props.url}`, response)
+    /* METHODS : all methods are defined here */
+    function onRefresh () {
+      if (id.value) getData()
+    }
+
+    function backToRoot (data) {
+      if (!fromModal.value) {
+        console.log('br', data)
+        if (data) router.push({ name: `${Meta.module}-detail`, params: data })
+        else router.push({ name: Meta.module })
+      } else if (closeForm.value) closeForm.value.$el.click()
+
+    }
+
+    function resetModel () {
+      Object.assign(dataModel.value, Meta.model)
+    }
+
+    function validateSubmit () {
+      // if (!dataModel.id) { // example validation
+      //   Helper.showAlert('Opps!', 'id is rquired!')
+      //   return false
+      // } else return true // must set true on ending return
+      return true
+    }
+
+    function submit (e, stay = false) {
+      stayAfterSubmit.value = stay
+      if (validateSubmit()) {
+        disableSubmit.value = true
+        if (dataModel.value.id !== null) update()
+        else save()
+      }
+    }
+
+    const callback  = (status, data, message) => {
+      Helper.loadingOverlay(false)
+      callbackFunc(data)
+      if (status === 200) {
+        console.log('stayAfterSubmit.value', stayAfterSubmit.value)
+        Helper.showSuccess('Succesfully', message)
+        if (stayAfterSubmit.value) {
+          window.location = `${Meta.module}/form/${data.id}`
         } else {
-          // Helper.showToast('File uploaded!')
-          rawFile.value = null
+          backToRoot(data)
         }
-      }, false, external)
+      } else disableSubmit.value = false
+    }
 
+    function save () {
+      Helper.loadingOverlay(true, 'Saving..')
+      Api.post(Meta.module, dataModel.value, callback)
+    }
+
+    function update () {
+      Helper.loadingOverlay(true, 'Updating..')
+      Api.post(`${Meta.module}/${dataModel.value.id}`, dataModel.value, callback)
+    }
+
+    function getData () {
+      loading.value = true
+      Api.get(`${Meta.module}/${id.value}`, (status, data, message, full) => {
+        loading.value = false
+        if (status === 200 && data) {
+          dataModel.value = data
+          if (data.tingkat_sekolah) onPickedTingkat(data.tingkat_sekolah)
+        }
+      })
+    }
+
+    function onPickedTingkat (tingkat) {
+      if (tingkat && tingkat.list_kelas) select.kelas = tingkat.list_kelas
+    }
+
+    function callbackFunc (data) {
+      if (props.onSubmit) props.onSubmit(data)
     }
 
     return {
-      inputValue,
-      fileDisplay,
-      rawFile,
-      error,
+      Meta,
+      closeForm,
+      loading,
+      disableSubmit,
+      dataModel,
+      select,
       // computed
-      useInnerLabel,
-      refFile,
-      showUploadBtn,
+      type,
+      fromModal,
+      id,
       // methods
-      pickFile,
-      onFileSelected,
-      uploadFile,
+      onRefresh,
+      getData,
+      submit,
+      backToRoot,
+      onPickedTingkat,
     }
   }
 })
 </script>
-

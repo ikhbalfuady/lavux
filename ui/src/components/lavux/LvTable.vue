@@ -29,7 +29,7 @@
           <q-tooltip>Refresh</q-tooltip>
         </q-btn>
 
-        <q-toggle icon="delete" dense size="sm" label="Trash" 
+        <q-toggle icon="delete" dense size="sm" label="Trash"
           v-model="table.isTrashed" @click="onRefresh" class="q-pl-sm animated fadeIn label-toggle-sm"
         />
 
@@ -60,7 +60,7 @@
         <q-th v-if="table.action" style="padding: 0px !important" >
           <q-checkbox v-if="table.selected.length > 0" @update:model-value="val => onSelectedAll(val)" v-model="checkAll" />
         </q-th>
-        
+
         <template v-for="col in props.cols">
           <q-th v-if="showAction(col)" :key="col.name" :props="props" :style="`${col.width ? `width:${col.width}` : ''}`">
             <LvThead :table="table" :column="col" :label="col.label" @filter="searching" @sorted="sortData"/>
@@ -72,7 +72,7 @@
     <!-- Custom Body -->
     <template v-slot:body-cell-action="props" v-if="table.action">
       <q-td class="lv-table-td" :props="props" :style="`${props.col.width ? `width:${props.col.width}` : ''}`">
-        <slot name="col-action" 
+        <slot name="col-action"
           :row="props.row"
           :index="props.rowIndex"
           :value="props.value"
@@ -90,7 +90,7 @@
           <template v-if="col.type === 'index'">{{props.rowIndex+1}}</template>
           <template v-else>{{props.value}}</template>
         </template>
-        <slot :name="`col-${col.name}`" 
+        <slot :name="`col-${col.name}`"
           :row="props.row"
           :index="props.rowIndex"
           :value="props.value"
@@ -117,14 +117,14 @@ import useServices from './../../composables/Services'
 
 /**
  * LvTable
- * 
- * Columns structure: 
- * - searchable : advance / true (full feature) | <input-type> | false (hide searchable)
+ *
+ * Columns structure:
+ * - searchable : advance / true (full feature) | date (date picker) | simple (instant search) | false (hide searchable)
  */
 export default defineComponent({
   name: 'LvTable',
   emits: [
-    'deleted', 
+    'deleted',
     'restored',
     'row-click',
     'row-dblclick',
@@ -139,7 +139,7 @@ export default defineComponent({
     config: { // table object structure, use : Handler.table() for standard structure
       type: Object,
       default: null,
-    }, 
+    },
     height: {
       type: String,
       default: '83vh',
@@ -265,7 +265,7 @@ export default defineComponent({
     function makeLabelSelected () {
       const data = table.value.data
       const selected = table.value.selected
-      return selected.length === 0 ? '' : `${selected.length} record${selected.length > 1 ? 's' : ''} selected of ${data.length}`
+      return Handler.tableMakeLabelSelected(data, selected)
     }
 
     function onScroll (e) {
@@ -368,7 +368,7 @@ export default defineComponent({
         table.value.loading = false
         if (status === 200 && data) {
           setData(data, reset)
-          
+
         }
       })
     }

@@ -22,9 +22,11 @@ trait StandardRepo {
         return $res;
     }
 
-    public function userId() {
-        $userId = $this->auth();
-        return $userId ? $userId->id : null;
+    public function userId($strict = false) {
+        $user = $this->auth();
+        $userId = $user ? $user->id : null;
+        if ($strict) throw new Exception("[!Auth] You must login to perform this.");
+        return $userId;
     }
 
     public function columns () : array {
@@ -110,10 +112,17 @@ trait StandardRepo {
 
     /* Fetching Data ***********************************************/
 
-    public function isExist($id, $relation = [], $withThrow = true) : object {
+    public function isExist($id, $relation = [], $withThrow = true, $withTrash = false) : object {
         try {
-            $res = $this->model->whereId($id)->with($relation)->first();
-            if ($withThrow && !$res) H_dataNotFound($id, 'id', 'Data');
+            if (isset($_GET['trash'])) $withTrash = true;
+
+            $res = $this->model->whereId($id)->with($relation);
+            if ($withTrash) $res = $res->withTrashed();
+            $res = $res->first();
+
+
+            $table = $this->tableName();
+            if ($withThrow && !$res) H_dataNotFound($id, 'id', "Data $table");
             return $res;
         } catch (Exception $e){
             throw new Exception(H_throw($e, '[StandardRepo::isExist]'));
@@ -143,7 +152,7 @@ trait StandardRepo {
     }`
 
     # Reserve keywords :
-    _columns    : define select columns
+    _columns    : define selector columns based on $fillabel in Model
     _limit      : define limit data | for fetch all data set = 0
     _page       : define page / offset data
     _contains   : define like query more than 1 columns
@@ -154,7 +163,7 @@ trait StandardRepo {
     _all        : define get all data (with trashed)
     _raw        : define using Raw Query
     _first      : define to get first data and return object | not work in table
-    _appends    : define to get appends data
+    _appends    : define to get appends data (when using _raw & _columns, you must including the "foreign_key column" inside _columns)
 
     # Searching
     syntax                  : ?{colum_name}={value} | ?{colum_name}={operator}:{value}
@@ -421,12 +430,14 @@ trait StandardRepo {
                 $data = $raw_data->first();
                 if ($data) $data = $this->setAppends(H_toArrayObject($data), $appends);
             } else {
+
                 // setup paging
                 $totalData    = $raw_data->count();
                 $skip         = ($currentPage - 1) * $limit;
                 if ($limit === 0) $data = H_toArrayObject($raw_data->get());
                 else $data = H_toArrayObject($raw_data->skip($skip)->limit($limit)->get());
                 // setup appends
+
                 foreach ($data as $i => $row) {
                     $row = $this->setAppends($row, $appends);
                 }
@@ -667,19 +678,21 @@ trait StandardRepo {
 
     /* Utils ***********************************************/
 
-    public function countData ($withTrash = true) : int {
+    public function countData ($withTrash = true, $customWhere = null) : int {
         $total = $this->model->query();
         if ($withTrash) $total = $total->withTrashed();
+        if ($customWhere) $total = $total->whereRaw($customWhere);
         $total = $total->count();
         return $total ? $total : 0;
     }
 
-    public function countDataInPeriode ($date_selector = 'created_at', $in_periode = false) : int {
+    public function countDataInPeriode ($date_selector = 'created_at', $in_periode = false, $customWhere = null) : int {
         $today = H_today();
         $year = H_formatDate($today, 'Y');
         $month = H_formatDate($today, 'm');
         $total = $this->model->query();
         if ($in_periode) $total = $total->whereMonth($date_selector, $month)->whereYear($date_selector, $year);
+        if ($customWhere) $total = $total->whereRaw($customWhere);
         $total = $total->withTrashed()->count();
         return $total ? $total : 0;
     }
@@ -700,16 +713,16 @@ trait StandardRepo {
         }
     }
 
-    public function generateSerial ($prefix, $format = '{prefix}/{year}/{month}/{serial_in_periode}', $length = 5, $index = 0, $date_selector = 'created_at') {
+    public function generateSerial ($prefix, $format = '{prefix}/{year}/{month}/{serial_in_periode}', $length = 5, $index = 0, $date_selector = 'created_at', $customWhere = null) {
         try {
             $today = H_today();
             $year = H_formatDate($today, 'Y');
             $month = H_formatDate($today, 'm');
 
-            $counter = 1 + $this->countData();
-            $counter_in_periode = 1 + $this->countDataInPeriode($date_selector, true);
+            $counter = 1 + $this->countData(true, $customWhere);
+            $counter_in_periode = 1 + $this->countDataInPeriode($date_selector, true, $customWhere);
 
-            if ($index < 1) $index = $index = 1 + $this->model->query()->withTrashed()->count();
+            if ($index < 1) $index = $index = 1 + $this->countData(true, $customWhere);
 
             $params = [
                 "prefix" => $prefix,
@@ -736,6 +749,45 @@ trait StandardRepo {
         }
     }
 
+    public function setterLogData ($userId, $mode = 'create') {
+        try {
+
+            $today = H_today();
+            $ip = H_getIpClient();
+
+            $features = ['create', 'update', 'delete', 'restore'];
+
+            $res = null;
+            if (in_array($mode, $features)) {
+
+                if ($mode == 'update') {
+                    $res = [ 'updated_at' => $today ];
+                    if (env('LOG_USER', false)) $res['updated_by'] = $userId;
+                    if (env('LOG_USER', false)) $res['updated_ip'] = $ip;
+                }
+                elseif ($mode == 'delete') {
+                    $res = [ 'deleted_at' => $today ];
+                    if (env('LOG_USER', false)) $res['deleted_by'] = $userId;
+                    if (env('LOG_USER', false)) $res['deleted_ip'] = $ip;
+                }
+                elseif ($mode == 'restore') {
+                    $res = [ 'deleted_at' => null ];
+                    // deleted_by & deleted_ip for tracking that the data has been deleted before
+                }
+                else {
+                    $res = [ 'created_at' => $today ];
+                    if (env('LOG_USER', false)) $res['created_by'] = $userId;
+                    if (env('LOG_USER', false)) $res['created_ip'] = $ip;
+                }
+            }
+
+            return $res;
+
+        } catch (Exception $e) {
+            throw new Exception(H_throw($e, '[StandardRepo::setterLogData]'));
+        }
+    }
+
     /**
      * Delete & Restore data multiple
      *
@@ -751,24 +803,11 @@ trait StandardRepo {
                 if (!$userId) throw new Exception("You cannot perform this, please login first!");
             }
 
-            $today = H_today();
-            $table = $this->tableName();
-
-            $logIp = '';
-            if (env('LOG_IP', false)) $logIp = ",deleted_ip = '".H_getIpClient()."'";
-
-            if ($mode == 'delete') {
-                $set = "deleted_at = '$today' $logIp";
-                if (env('LOG_USER', false)) $set = "$set, deleted_by = '$userId'";
-            } else {
-                $set = "updated_at = '$today', deleted_at = NULL $logIp";
-                if (env('LOG_USER', false)) $set = "$set, deleted_by = NULL, updated_by = '$userId'";
+            if ($permanent) DB::table($this->tableName())->whereIn('id', $ids)->forceDelete();
+            else {
+                $log = $this->setterLogData($userId, $mode);
+                if ($log) DB::table($this->tableName())->whereIn('id', $ids)->update($log);
             }
-
-            $id = implode(',', $ids);
-            if ($permanent) DB::select("DELETE $table WHERE id IN($id) ");
-            else DB::select("UPDATE $table SET $set WHERE id IN($id) ");
-
 
         } catch (Exception $e) {
             throw new Exception(H_throw($e, '[StandardRepo::deleteRestoreBatch]'));

@@ -81,7 +81,11 @@ export default defineComponent({
     /* COMPUTED : all computed variables are defined here */
     const fromModal = computed(() => { return (props.data)? props.data : null })
     const id = computed(() => {
-      return (fromModal.value && fromModal.value.id) ? fromModal.value.id : Handler.urlParams(route, 'id', true)
+      const accepted = [
+        `${Meta.module}-add`,
+        `${Meta.module}-edit`,
+      ]
+      return Handler.getIdParamPage(fromModal, route, accepted)
     })
     const type = computed(() => { return (id.value) ? 'update' : 'create' })
 

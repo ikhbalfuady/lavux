@@ -7,12 +7,12 @@ use Illuminate\Http\Request;
 use Exception;
 
 /*  Appends & Attributes
-    Since the function "get{YouAttr}Attribute()" is also used in StandardRepo, 
-    therefore you should customize the function by adding default data arguments 
+    Since the function "get{YouAttr}Attribute()" is also used in StandardRepo,
+    therefore you should customize the function by adding default data arguments
     with values according to the model structure in this module.
 
-    because there are adjustments regarding the use of "appends" manually, 
-    in the query builder that we provide, therefore there are additional rules 
+    because there are adjustments regarding the use of "appends" manually,
+    in the query builder that we provide, therefore there are additional rules
     that you must do so that the results meet your expectations.
 
     1. Add the first argument to your "getAttribute" function which contains the fetched data value.
@@ -117,15 +117,22 @@ trait StandardModel {
     }
 
     /**
-     * @param $models : array object [ 'RelationName' => 'ModelName', 'RelationName2' => 'ModelName2' ]
+     * @param $models : array object [ 'RelationName' => 'ModelName', 'RelationName2' => ['direc', 'column', 'defined'] ]
+     * value structure
+     * key <string>             : Function Name of Relation
+     * value <string, array>    : Model name or column list array of your module
      */
     public function bindSearchRelation ($models = []) : array {
         try {
             $res = [];
-            foreach ($models as $relationName => $modelName) {
-                $model = "App\Models\\$modelName";
-                $model = new $model();
-                $res[$relationName] = $model->getColumns();
+            foreach ($models as $relationName => $modelOrCol) {
+                if (is_array($modelOrCol)) { // define direct column of model
+                    $res[$relationName] = $modelOrCol;
+                } else { // getting column of the model
+                    $model = "App\Models\\$modelOrCol";
+                    $model = new $model();
+                    $res[$relationName] = $model->getColumns();
+                }
             }
             return $res;
         } catch (Exception $e) {
@@ -133,12 +140,12 @@ trait StandardModel {
         }
     }
 
-    /* SEARCH FILTER 
-        this method needed for searchable validation & filter list on UI, for automaticaly set column filter 
+    /* SEARCH FILTER
+        this method needed for searchable validation & filter list on UI, for automaticaly set column filter
         # interface / format:
         [
             'id'        => 'work_id', // column name
-            'name'      => 'work_id', // label 
+            'name'      => 'work_id', // label
             'type'      => 'input', // input, select, date
             'options'   => [], // : for select
             'sources'   => null, // : for select serverside (endpoint / path API)
@@ -156,7 +163,7 @@ trait StandardModel {
                     'name'      => ucwords($col),
                     'type'      => 'input',
                     'options'   => [],
-                    'sources'   => null, 
+                    'sources'   => null,
                     'key_value' => null,
                     'key_label' => null,
                     'operator'  => H_getOperatorSearchList(H_filterTableOperatorDefault('all')),
@@ -191,13 +198,26 @@ trait StandardModel {
         }
     }
 
+    /* UTILITIES */
+    public function getDefaultValue ($col) {
+        $casts = $this->getCasts();
+        $type = isset($casts[$col]) ? $casts[$col] : 'string';
+
+        $res = null;
+        if ($type == 'real' || $type == 'float' || $type == 'decimal') $res = 0;
+        if ($type == 'array' || $type == 'json') $res = [];
+        return $res;
+    }
+
     public function DB ($table) {
         return DB::table($table);
     }
 
     public function overideModelAttribute (&$instance, $data) {
-        foreach ($data as $key => $val) {
-            $this->setAttribute($key,  $val);
+        if ($data) {
+            foreach ($data as $key => $val) {
+                $this->setAttribute($key,  $val);
+            }
         }
     }
 

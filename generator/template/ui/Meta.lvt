@@ -33,4 +33,7 @@ Meta.permission = {
 // uncomment this if you want to allow all permission / disable permission handler feature
 // Meta.permission = Handler.makeAllPermissionAllowed(Meta.permission)
 
+// uncomment this if you want to set all columns using simple search
+// Meta.columns = Handler.makeSimpleSearchable(Meta.columns)
+
 export default Meta

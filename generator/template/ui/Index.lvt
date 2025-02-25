@@ -44,7 +44,7 @@
 
     </lv-table>
 
-    <q-dialog v-model="modal.show" @hide="modal.show = false" transition-show="jump-up" transition-hide="jump-down">
+    <q-dialog v-if="actionModal" v-model="modal.show" @hide="modal.show = false" transition-show="jump-up" transition-hide="jump-down">
       <Form v-if="modal.target === 'form'" :data="modal.data" :onSubmit="onSubmitForm"/>
       <Detail v-if="modal.target === 'detail'" :data="modal.data"/>
     </q-dialog>
@@ -215,6 +215,7 @@ export default defineComponent({
       table,
       refTable,
       // computed
+      actionModal,
       // methods
       action,
       onDeleted,
